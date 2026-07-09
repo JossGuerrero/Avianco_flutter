@@ -2,10 +2,17 @@ import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../widgets/module_card.dart';
 import 'airports_screen.dart';
+import 'aeronaves_screen.dart';
+import 'asientos_screen.dart';
+import 'checkins_screen.dart';
 import 'dashboard_screen.dart';
 import 'flights_screen.dart';
+import 'facturas_screen.dart';
 import 'passengers_screen.dart';
+import 'promociones_screen.dart';
 import 'reservations_screen.dart';
+import 'servicios_screen.dart';
+import 'tripulacion_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -26,28 +33,7 @@ class _HomeScreenState extends State<HomeScreen> {
     AirportsScreen(),
   ];
 
-  final List<_ModuleItem> _modules = const [
-    _ModuleItem(
-      title: 'Vuelos',
-      icon: Icons.flight_takeoff,
-      color: Color(0xFF2E7D32),
-    ),
-    _ModuleItem(
-      title: 'Aeropuertos',
-      icon: Icons.location_on,
-      color: Color(0xFF7B2D8B),
-    ),
-    _ModuleItem(
-      title: 'Reservas',
-      icon: Icons.book_online,
-      color: Color(0xFF1565C0),
-    ),
-    _ModuleItem(
-      title: 'Pasajeros',
-      icon: Icons.person,
-      color: Color(0xFFE65100),
-    ),
-  ];
+  // Module list removed (cards are declared inline)
 
   @override
   void initState() {
@@ -64,7 +50,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _logout() async {
     await AuthService.logout();
-    if (mounted) Navigator.pushReplacementNamed(context, '/login');
+    if (mounted) {
+      Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+    }
   }
 
   @override
@@ -131,37 +119,112 @@ class _HomeScreenState extends State<HomeScreen> {
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
                       children: [
-                        ..._modules.map(
-                          (module) => ModuleCard(
-                            title: module.title,
-                            icon: module.icon,
-                            color: module.color,
-                            onTap: () {
-                              setState(() {
-                                if (module.title == 'Vuelos')
-                                  _selectedIndex = 1;
-                                if (module.title == 'Reservas')
-                                  _selectedIndex = 2;
-                                if (module.title == 'Pasajeros')
-                                  _selectedIndex = 3;
-                                if (module.title == 'Aeropuertos')
-                                  _selectedIndex = 4;
-                              });
-                            },
+                        // Core modules (use tabs)
+                        ModuleCard(
+                          title: 'Vuelos',
+                          icon: Icons.flight_takeoff,
+                          color: const Color(0xFF2E7D32),
+                          onTap: () => setState(() => _selectedIndex = 1),
+                        ),
+                        ModuleCard(
+                          title: 'Reservas',
+                          icon: Icons.book_online,
+                          color: const Color(0xFF1565C0),
+                          onTap: () => setState(() => _selectedIndex = 2),
+                        ),
+                        ModuleCard(
+                          title: 'Pasajeros',
+                          icon: Icons.person,
+                          color: const Color(0xFFE65100),
+                          onTap: () => setState(() => _selectedIndex = 3),
+                        ),
+                        ModuleCard(
+                          title: 'Aeropuertos',
+                          icon: Icons.location_on,
+                          color: const Color(0xFF7B2D8B),
+                          onTap: () => setState(() => _selectedIndex = 4),
+                        ),
+
+                        // Additional modules (open as pages)
+                        ModuleCard(
+                          title: 'Servicios',
+                          icon: Icons.room_service,
+                          color: const Color(0xFF512DA8),
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const ServicesScreen(),
+                            ),
                           ),
                         ),
+                        ModuleCard(
+                          title: 'Promociones',
+                          icon: Icons.local_offer,
+                          color: const Color(0xFF1565C0),
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const PromotionsScreen(),
+                            ),
+                          ),
+                        ),
+                        ModuleCard(
+                          title: 'Facturas',
+                          icon: Icons.receipt_long,
+                          color: const Color(0xFF9E9E9E),
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const InvoicesScreen(),
+                            ),
+                          ),
+                        ),
+                        ModuleCard(
+                          title: 'Check-ins',
+                          icon: Icons.how_to_reg,
+                          color: const Color(0xFF0277BD),
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const CheckinsScreen(),
+                            ),
+                          ),
+                        ),
+
+                        // Staff-only modules
                         if (_isStaff) ...[
                           ModuleCard(
                             title: 'Aeronaves',
                             icon: Icons.airplanemode_active,
                             color: const Color(0xFF4A1060),
-                            onTap: () {},
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const AircraftsScreen(),
+                              ),
+                            ),
                           ),
                           ModuleCard(
                             title: 'Tripulación',
                             icon: Icons.people,
                             color: const Color(0xFF00695C),
-                            onTap: () {},
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const CrewScreen(),
+                              ),
+                            ),
+                          ),
+                          ModuleCard(
+                            title: 'Asientos',
+                            icon: Icons.event_seat,
+                            color: const Color(0xFF2E7D32),
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const SeatsScreen(),
+                              ),
+                            ),
                           ),
                         ],
                       ],
@@ -202,14 +265,4 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-class _ModuleItem {
-  final String title;
-  final IconData icon;
-  final Color color;
-
-  const _ModuleItem({
-    required this.title,
-    required this.icon,
-    required this.color,
-  });
-}
+// _ModuleItem removed (cards declared inline)

@@ -1,92 +1,137 @@
 import 'package:flutter/material.dart';
+import '../services/api_service.dart';
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
+
+  @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  bool _loading = true;
+  int _vuelos = 0;
+  int _reservas = 0;
+  int _pasajeros = 0;
+  int _aeropuertos = 0;
+  List<dynamic> _reservasRecientes = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    setState(() => _loading = true);
+    final results = await Future.wait([
+      ApiService.getVuelosCount(),
+      ApiService.getReservasCount(),
+      ApiService.getPasajerosCount(),
+      ApiService.getAeropuertosCount(),
+      ApiService.getReservas(),
+    ]);
+    if (!mounted) return;
+    final reservas = results[4] as List<dynamic>;
+    setState(() {
+      _vuelos = results[0] as int;
+      _reservas = results[1] as int;
+      _pasajeros = results[2] as int;
+      _aeropuertos = results[3] as int;
+      _reservasRecientes = reservas.take(3).toList();
+      _loading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Panel general',
-            style: theme.textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
+    if (_loading) return const Center(child: CircularProgressIndicator());
+
+    return RefreshIndicator(
+      onRefresh: _load,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Panel general',
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Resumen rápido del sistema',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: Colors.grey[600],
+            const SizedBox(height: 8),
+            Text(
+              'Resumen rápido del sistema',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: Colors.grey[600],
+              ),
             ),
-          ),
-          const SizedBox(height: 16),
-          Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            children: const [
-              _StatCard(
-                title: 'Vuelos activos',
-                value: '24',
-                color: Color(0xFF2E7D32),
-              ),
-              _StatCard(
-                title: 'Reservas hoy',
-                value: '81',
-                color: Color(0xFF1565C0),
-              ),
-              _StatCard(
-                title: 'Pasajeros',
-                value: '1.2k',
-                color: Color(0xFFE65100),
-              ),
-              _StatCard(
-                title: 'Aeropuertos',
-                value: '12',
-                color: Color(0xFF7B2D8B),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Actividad reciente',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: [
+                _StatCard(
+                  title: 'Vuelos',
+                  value: '$_vuelos',
+                  color: const Color(0xFF2E7D32),
+                ),
+                _StatCard(
+                  title: 'Reservas',
+                  value: '$_reservas',
+                  color: const Color(0xFF1565C0),
+                ),
+                _StatCard(
+                  title: 'Pasajeros',
+                  value: '$_pasajeros',
+                  color: const Color(0xFFE65100),
+                ),
+                _StatCard(
+                  title: 'Aeropuertos',
+                  value: '$_aeropuertos',
+                  color: const Color(0xFF7B2D8B),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Reservas recientes',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  _ActivityRow(
-                    title: 'Check-in completado',
-                    subtitle: 'Vuelo AV-104',
-                    time: 'Hace 10 min',
-                  ),
-                  const Divider(),
-                  _ActivityRow(
-                    title: 'Reserva confirmada',
-                    subtitle: 'Pasajero: Ana García',
-                    time: 'Hace 25 min',
-                  ),
-                  const Divider(),
-                  _ActivityRow(
-                    title: 'Aeronave en mantenimiento',
-                    subtitle: 'BOEING 737',
-                    time: 'Hace 1 hora',
-                  ),
-                ],
+                    const SizedBox(height: 12),
+                    if (_reservasRecientes.isEmpty)
+                      Text(
+                        'No hay reservas registradas',
+                        style: TextStyle(color: Colors.grey[600]),
+                      )
+                    else
+                      for (var i = 0; i < _reservasRecientes.length; i++) ...[
+                        if (i > 0) const Divider(),
+                        _ActivityRow(
+                          title: 'Reserva #${_reservasRecientes[i]['id']}',
+                          subtitle:
+                              'Vuelo ${_reservasRecientes[i]['vuelo']} · Asiento ${_reservasRecientes[i]['asiento'] ?? '—'}',
+                          estado: (_reservasRecientes[i]['estado'] ?? '')
+                              .toString(),
+                        ),
+                      ],
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -136,11 +181,11 @@ class _StatCard extends StatelessWidget {
 class _ActivityRow extends StatelessWidget {
   final String title;
   final String subtitle;
-  final String time;
+  final String estado;
   const _ActivityRow({
     required this.title,
     required this.subtitle,
-    required this.time,
+    required this.estado,
   });
 
   @override
@@ -158,7 +203,10 @@ class _ActivityRow extends StatelessWidget {
             ],
           ),
         ),
-        Text(time, style: TextStyle(color: Colors.grey[500], fontSize: 12)),
+        Text(
+          estado,
+          style: TextStyle(color: Colors.grey[500], fontSize: 12),
+        ),
       ],
     );
   }

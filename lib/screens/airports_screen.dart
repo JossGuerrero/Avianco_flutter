@@ -1,37 +1,303 @@
 import 'package:flutter/material.dart';
+import '../services/api_service.dart';
+import '../services/auth_service.dart';
 
-class AirportsScreen extends StatelessWidget {
+class AirportsScreen extends StatefulWidget {
   const AirportsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final airports = [
-      {'name': 'Aeropuerto El Dorado', 'city': 'Bogotá', 'code': 'BOG'},
-      {
-        'name': 'Aeropuerto José María Córdova',
-        'city': 'Medellín',
-        'code': 'MDE',
-      },
-      {'name': 'Aeropuerto Rafael Núñez', 'city': 'Cartagena', 'code': 'CTG'},
-    ];
+  State<AirportsScreen> createState() => _AirportsScreenState();
+}
 
-    return ListView.separated(
-      padding: const EdgeInsets.all(16),
-      itemCount: airports.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 12),
-      itemBuilder: (context, index) {
-        final item = airports[index];
-        return Card(
-          child: ListTile(
-            leading: const CircleAvatar(
-              backgroundColor: Color(0xFF7B2D8B),
-              child: Icon(Icons.local_airport, color: Colors.white),
-            ),
-            title: Text(item['name']!),
-            subtitle: Text('${item['city']} · ${item['code']}'),
+class _AirportsScreenState extends State<AirportsScreen> {
+  List<dynamic> _aeropuertos = [];
+  bool _loading = true;
+  bool _isStaff = false;
+  final _searchCtrl = TextEditingController();
+
+  static const _purple = Color(0xFF7B2D8B);
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load({String search = ''}) async {
+    setState(() => _loading = true);
+    _isStaff = await AuthService.isStaff();
+    final data = await ApiService.getAeropuertos(search: search);
+    if (!mounted) return;
+    setState(() {
+      _aeropuertos = data;
+      _loading = false;
+    });
+  }
+
+  Future<void> _delete(int id) async {
+    final ok = await ApiService.deleteAeropuerto(id);
+    if (!mounted) return;
+    if (ok) {
+      _load();
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Aeropuerto eliminado')));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No se puede eliminar, tiene vuelos asociados'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _confirmDelete(Map a) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Eliminar aeropuerto'),
+        content: Text('¿Eliminar ${a['nombre']}?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancelar'),
           ),
-        );
-      },
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Eliminar', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+    if (confirm == true) _delete(a['id']);
+  }
+
+  Future<void> _showForm({Map? aeropuerto}) async {
+    final codigoCtrl = TextEditingController(
+      text: aeropuerto?['codigo_iata'] ?? '',
+    );
+    final nombreCtrl = TextEditingController(text: aeropuerto?['nombre'] ?? '');
+    final ciudadCtrl = TextEditingController(text: aeropuerto?['ciudad'] ?? '');
+    final paisCtrl = TextEditingController(text: aeropuerto?['pais'] ?? '');
+    final formKey = GlobalKey<FormState>();
+
+    await showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Row(
+          children: [
+            const Icon(Icons.location_on, color: _purple),
+            const SizedBox(width: 8),
+            Text(aeropuerto == null ? 'Nuevo Aeropuerto' : 'Editar Aeropuerto'),
+          ],
+        ),
+        content: Form(
+          key: formKey,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: codigoCtrl,
+                  decoration: const InputDecoration(
+                    labelText: 'Código IATA (ej: UIO)',
+                  ),
+                  maxLength: 3,
+                  textCapitalization: TextCapitalization.characters,
+                  validator: (v) => v == null || v.isEmpty ? 'Requerido' : null,
+                ),
+                TextFormField(
+                  controller: nombreCtrl,
+                  decoration: const InputDecoration(labelText: 'Nombre'),
+                  validator: (v) => v == null || v.isEmpty ? 'Requerido' : null,
+                ),
+                TextFormField(
+                  controller: ciudadCtrl,
+                  decoration: const InputDecoration(labelText: 'Ciudad'),
+                  validator: (v) => v == null || v.isEmpty ? 'Requerido' : null,
+                ),
+                TextFormField(
+                  controller: paisCtrl,
+                  decoration: const InputDecoration(labelText: 'País'),
+                  validator: (v) => v == null || v.isEmpty ? 'Requerido' : null,
+                ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: _purple),
+            onPressed: () async {
+              if (!formKey.currentState!.validate()) return;
+              final data = {
+                'codigo_iata': codigoCtrl.text.toUpperCase(),
+                'nombre': nombreCtrl.text,
+                'ciudad': ciudadCtrl.text,
+                'pais': paisCtrl.text,
+              };
+              bool ok;
+              if (aeropuerto == null) {
+                ok = await ApiService.createAeropuerto(data);
+              } else {
+                ok = await ApiService.updateAeropuerto(aeropuerto['id'], data);
+              }
+              if (!ctx.mounted) return;
+              Navigator.pop(ctx);
+              if (ok) {
+                _load();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Guardado exitosamente')),
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Error al guardar'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+            },
+            child: const Text('Guardar', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(12),
+          child: TextField(
+            controller: _searchCtrl,
+            decoration: InputDecoration(
+              hintText: 'Buscar aeropuerto...',
+              prefixIcon: const Icon(Icons.search),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              suffixIcon: IconButton(
+                icon: const Icon(Icons.clear),
+                onPressed: () {
+                  _searchCtrl.clear();
+                  _load();
+                },
+              ),
+            ),
+            onChanged: (v) => _load(search: v),
+          ),
+        ),
+        if (_isStaff)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(backgroundColor: _purple),
+                onPressed: () => _showForm(),
+                icon: const Icon(Icons.add, color: Colors.white),
+                label: const Text(
+                  'Nuevo Aeropuerto',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            ),
+          ),
+        Expanded(
+          child: _loading
+              ? const Center(
+                  child: CircularProgressIndicator(color: _purple),
+                )
+              : _aeropuertos.isEmpty
+              ? const Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.location_off, size: 64, color: Colors.grey),
+                      SizedBox(height: 8),
+                      Text(
+                        'No hay aeropuertos',
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                )
+              : RefreshIndicator(
+                  onRefresh: _load,
+                  child: ListView.separated(
+                    padding: const EdgeInsets.all(12),
+                    itemCount: _aeropuertos.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 8),
+                    itemBuilder: (ctx, i) {
+                      final a = _aeropuertos[i];
+                      return Card(
+                        elevation: 2,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: ListTile(
+                          leading: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: _purple,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              a['codigo_iata'] ?? '—',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          title: Text(
+                            a['nombre'] ?? '—',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          subtitle: Text(
+                            '${a['ciudad'] ?? '—'}, ${a['pais'] ?? '—'}',
+                          ),
+                          trailing: _isStaff
+                              ? Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.edit,
+                                        size: 20,
+                                        color: _purple,
+                                      ),
+                                      onPressed: () => _showForm(aeropuerto: a),
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.delete,
+                                        size: 20,
+                                        color: Colors.red,
+                                      ),
+                                      onPressed: () => _confirmDelete(a),
+                                    ),
+                                  ],
+                                )
+                              : null,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+        ),
+      ],
     );
   }
 }
