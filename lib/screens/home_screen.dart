@@ -194,6 +194,17 @@ class _HomeScreenState extends State<HomeScreen> {
                         // Staff-only modules
                         if (_isStaff) ...[
                           ModuleCard(
+                            title: 'Dashboard',
+                            icon: Icons.dashboard,
+                            color: const Color(0xFF4A1060),
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const DashboardScreen(),
+                              ),
+                            ),
+                          ),
+                          ModuleCard(
                             title: 'Aeronaves',
                             icon: Icons.airplanemode_active,
                             color: const Color(0xFF4A1060),
