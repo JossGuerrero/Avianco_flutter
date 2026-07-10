@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../config/api.dart';
 import 'auth_service.dart';
@@ -59,20 +60,48 @@ class ApiService {
 
   // ---------- ENDPOINTS PUBLICOS (sin token) ----------
   static Future<List<dynamic>> getVuelosPublico() async {
-    final response = await http.get(
-      Uri.parse('${Api.baseUrl}/vuelos/?estado=programado'),
-      headers: {'Content-Type': 'application/json'},
-    );
-    if (response.statusCode == 200) return jsonDecode(response.body)['results'];
+    try {
+      var response = await http.get(
+        Uri.parse('${Api.baseUrl}/vuelos/?estado=programado'),
+        headers: {'Content-Type': 'application/json'},
+      );
+      debugPrint(
+        'getVuelosPublico [${response.statusCode}]: '
+        '${response.body.length > 300 ? response.body.substring(0, 300) : response.body}',
+      );
+      if (response.statusCode == 200) {
+        final results = jsonDecode(response.body)['results'];
+        if (results is List && results.isNotEmpty) return results;
+        // Sin vuelos programados: trae todos para no dejar la pantalla vacía
+        response = await http.get(
+          Uri.parse('${Api.baseUrl}/vuelos/'),
+          headers: {'Content-Type': 'application/json'},
+        );
+        if (response.statusCode == 200) {
+          final all = jsonDecode(response.body)['results'];
+          if (all is List) return all;
+        }
+      }
+    } catch (e) {
+      debugPrint('getVuelosPublico error: $e');
+    }
     return [];
   }
 
   static Future<List<dynamic>> getPromocionesPublico() async {
-    final response = await http.get(
-      Uri.parse('${Api.baseUrl}/promociones/?activa=true'),
-      headers: {'Content-Type': 'application/json'},
-    );
-    if (response.statusCode == 200) return jsonDecode(response.body)['results'];
+    try {
+      final response = await http.get(
+        Uri.parse('${Api.baseUrl}/promociones/?activa=true'),
+        headers: {'Content-Type': 'application/json'},
+      );
+      debugPrint('getPromocionesPublico [${response.statusCode}]');
+      if (response.statusCode == 200) {
+        final results = jsonDecode(response.body)['results'];
+        if (results is List) return results;
+      }
+    } catch (e) {
+      debugPrint('getPromocionesPublico error: $e');
+    }
     return [];
   }
 
@@ -282,6 +311,16 @@ class ApiService {
     return response.statusCode == 204;
   }
 
+  static Future<List<dynamic>> getAsientosPorVuelo(int vueloId) async {
+    final headers = await _headers();
+    final response = await http.get(
+      Uri.parse('${Api.baseUrl}/asientos/?vuelo=$vueloId'),
+      headers: headers,
+    );
+    if (response.statusCode == 200) return jsonDecode(response.body)['results'];
+    return [];
+  }
+
   // PASAJEROS
   static Future<List<dynamic>> getPasajeros({String search = ''}) async {
     final headers = await _headers();
@@ -484,6 +523,198 @@ class ApiService {
     );
     return response.statusCode == 204;
   }
+
+  // METODOS DE PAGO
+  static Future<List<dynamic>> getMetodosPago() async {
+    try {
+      final headers = await _headers();
+      final response = await http.get(
+        Uri.parse('${Api.baseUrl}/metodos-pago/'),
+        headers: headers,
+      );
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body);
+        if (body is Map && body['results'] is List) return body['results'];
+        if (body is List) return body;
+      }
+    } catch (e) {
+      debugPrint('getMetodosPago error: $e');
+    }
+    return [];
+  }
+
+  static Future<List<dynamic>> getMetodosPagoActivos() async {
+    final metodos = await getMetodosPago();
+    final activos = metodos
+        .where((m) => m['activo'] == true || m['activa'] == true)
+        .toList();
+    return activos.isNotEmpty ? activos : metodos;
+  }
+
+  // PAGOS
+  static Future<Map<String, dynamic>?> createPago(
+    Map<String, dynamic> data,
+  ) async {
+    final headers = await _headers();
+    final response = await http.post(
+      Uri.parse('${Api.baseUrl}/pagos/'),
+      headers: headers,
+      body: jsonEncode(data),
+    );
+    debugPrint('createPago [${response.statusCode}]: ${response.body}');
+    if (response.statusCode == 201 || response.statusCode == 200) {
+      final body = jsonDecode(response.body);
+      if (body is Map<String, dynamic>) return body;
+      return {};
+    }
+    return null;
+  }
+
+  // Variantes que devuelven el objeto creado (se necesita el id)
+  static Future<Map<String, dynamic>?> createReservaDetalle(
+    Map<String, dynamic> data,
+  ) async {
+    final headers = await _headers();
+    final response = await http.post(
+      Uri.parse('${Api.baseUrl}/reservas/'),
+      headers: headers,
+      body: jsonEncode(data),
+    );
+    debugPrint('createReserva [${response.statusCode}]: ${response.body}');
+    if (response.statusCode == 201) {
+      final body = jsonDecode(response.body);
+      if (body is Map<String, dynamic>) return body;
+      return {};
+    }
+    return null;
+  }
+
+  static Future<Map<String, dynamic>?> createFacturaDetalle(
+    Map<String, dynamic> data,
+  ) async {
+    final headers = await _headers();
+    final response = await http.post(
+      Uri.parse('${Api.baseUrl}/facturas/'),
+      headers: headers,
+      body: jsonEncode(data),
+    );
+    debugPrint('createFactura [${response.statusCode}]: ${response.body}');
+    if (response.statusCode == 201) {
+      final body = jsonDecode(response.body);
+      if (body is Map<String, dynamic>) return body;
+      return {};
+    }
+    return null;
+  }
+
+  // USUARIOS (mejor esfuerzo: prueba varios endpoints comunes)
+  static Future<List<dynamic>> getUsuarios() async {
+    for (final ep in ['usuarios', 'auth/usuarios', 'users']) {
+      try {
+        final headers = await _headers();
+        final response = await http.get(
+          Uri.parse('${Api.baseUrl}/$ep/'),
+          headers: headers,
+        );
+        if (response.statusCode == 200) {
+          final body = jsonDecode(response.body);
+          if (body is Map && body['results'] is List) return body['results'];
+          if (body is List) return body;
+        }
+      } catch (_) {
+        // Prueba el siguiente endpoint
+      }
+    }
+    return [];
+  }
+
+  // ---------- CATALOGOS Y TABLAS SECUNDARIAS ----------
+  static Future<List<dynamic>> _getList(String pathAndQuery) async {
+    try {
+      final headers = await _headers();
+      final response = await http.get(
+        Uri.parse('${Api.baseUrl}/$pathAndQuery'),
+        headers: headers,
+      );
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body);
+        if (body is Map && body['results'] is List) return body['results'];
+        if (body is List) return body;
+      } else {
+        debugPrint('GET /$pathAndQuery [${response.statusCode}]');
+      }
+    } catch (e) {
+      debugPrint('GET /$pathAndQuery error: $e');
+    }
+    return [];
+  }
+
+  static Future<bool> _post(String endpoint, Map<String, dynamic> data) async {
+    try {
+      final headers = await _headers();
+      final response = await http.post(
+        Uri.parse('${Api.baseUrl}/$endpoint/'),
+        headers: headers,
+        body: jsonEncode(data),
+      );
+      debugPrint('POST /$endpoint [${response.statusCode}]: ${response.body}');
+      return response.statusCode == 201 || response.statusCode == 200;
+    } catch (e) {
+      debugPrint('POST /$endpoint error: $e');
+      return false;
+    }
+  }
+
+  static Future<List<dynamic>> getTiposAvion() => _getList('tipos-avion/');
+  static Future<bool> createTipoAvion(Map<String, dynamic> data) =>
+      _post('tipos-avion', data);
+
+  static Future<List<dynamic>> getTerminales() => _getList('terminales/');
+  static Future<List<dynamic>> getPuertas({int? terminal}) => _getList(
+        terminal == null
+            ? 'puertas/'
+            : 'puertas/?terminal=$terminal&activa=true',
+      );
+
+  static Future<List<dynamic>> getPaises() => _getList('paises/');
+  static Future<bool> createPais(Map<String, dynamic> data) =>
+      _post('paises', data);
+  static Future<List<dynamic>> getCiudades({int? pais}) =>
+      _getList(pais == null ? 'ciudades/' : 'ciudades/?pais=$pais');
+  static Future<bool> createCiudad(Map<String, dynamic> data) =>
+      _post('ciudades', data);
+
+  static Future<List<dynamic>> getEscalasPorVuelo(int vueloId) =>
+      _getList('escalas/?vuelo=$vueloId');
+  static Future<List<dynamic>> getEstadosVueloPorVuelo(int vueloId) =>
+      _getList('estados-vuelo/?vuelo=$vueloId');
+
+  static Future<List<dynamic>> getAsignaciones() => _getList('asignaciones/');
+  static Future<bool> createAsignacion(Map<String, dynamic> data) =>
+      _post('asignaciones', data);
+
+  static Future<List<dynamic>> getNotificaciones() =>
+      _getList('notificaciones/');
+  static Future<bool> createNotificacion(Map<String, dynamic> data) =>
+      _post('notificaciones', data);
+  static Future<bool> marcarNotificacionLeida(int id) async {
+    try {
+      final headers = await _headers();
+      final response = await http.patch(
+        Uri.parse('${Api.baseUrl}/notificaciones/$id/'),
+        headers: headers,
+        body: jsonEncode({'leida': true}),
+      );
+      return response.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  static Future<bool> createReservaServicio(Map<String, dynamic> data) =>
+      _post('reserva-servicios', data);
+  static Future<bool> createEquipaje(Map<String, dynamic> data) =>
+      _post('equipajes', data);
 
   // CHECKINS
   static Future<List<dynamic>> getCheckins() async {

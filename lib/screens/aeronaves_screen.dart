@@ -71,11 +71,83 @@ class _AircraftsScreenState extends State<AircraftsScreen> {
     if (confirm == true) _delete(a['id']);
   }
 
+  /// Crea un tipo de avión inline (cuando el catálogo está vacío).
+  Future<bool> _crearTipoAvion() async {
+    final nombreCtrl = TextEditingController();
+    final fabricanteCtrl = TextEditingController();
+    final creado = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: const Text('Nuevo tipo de avión'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nombreCtrl,
+              decoration: const InputDecoration(
+                labelText: 'Nombre/Modelo (ej: Boeing 737)',
+              ),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: fabricanteCtrl,
+              decoration: const InputDecoration(
+                labelText: 'Fabricante (ej: Boeing)',
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancelar', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.dark,
+              minimumSize: const Size(120, 48),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+            ),
+            onPressed: () async {
+              if (nombreCtrl.text.isEmpty) return;
+              final ok = await ApiService.createTipoAvion({
+                'nombre': nombreCtrl.text,
+                'modelo': nombreCtrl.text,
+                'fabricante': fabricanteCtrl.text,
+              });
+              if (!ctx.mounted) return;
+              Navigator.pop(ctx, ok);
+            },
+            child: const Text('Crear', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+    return creado == true;
+  }
+
   Future<void> _showForm({Map? aeronave}) async {
+    // Catálogo de tipos de avión para no escribir el modelo a mano
+    final tipos = await ApiService.getTiposAvion();
+    if (!mounted) return;
+    final nombresTipos = tipos
+        .map<String>(
+          (t) => (t['nombre'] ?? t['modelo'] ?? '').toString(),
+        )
+        .where((n) => n.isNotEmpty)
+        .toSet()
+        .toList();
+
     final matriculaCtrl = TextEditingController(
       text: aeronave?['matricula'] ?? '',
     );
     final modeloCtrl = TextEditingController(text: aeronave?['modelo'] ?? '');
+    final modeloActual = aeronave?['modelo']?.toString();
+    String? modeloSel =
+        nombresTipos.contains(modeloActual) ? modeloActual : null;
     final capacidadCtrl = TextEditingController(
       text: aeronave?['capacidad']?.toString() ?? '',
     );
@@ -103,13 +175,54 @@ class _AircraftsScreenState extends State<AircraftsScreen> {
                 ),
                 validator: (v) => v == null || v.isEmpty ? 'Requerido' : null,
               ),
-              TextFormField(
-                controller: modeloCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'Modelo (ej: Boeing 737)',
+              if (nombresTipos.isNotEmpty)
+                DropdownButtonFormField<String>(
+                  initialValue: modeloSel,
+                  isExpanded: true,
+                  decoration: const InputDecoration(labelText: 'Modelo'),
+                  items: nombresTipos
+                      .map(
+                        (n) => DropdownMenuItem(
+                          value: n,
+                          child: Text(n, overflow: TextOverflow.ellipsis),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (v) => modeloSel = v,
+                  validator: (v) => v == null ? 'Requerido' : null,
+                )
+              else ...[
+                TextFormField(
+                  controller: modeloCtrl,
+                  decoration: const InputDecoration(
+                    labelText: 'Modelo (ej: Boeing 737)',
+                  ),
+                  validator: (v) =>
+                      v == null || v.isEmpty ? 'Requerido' : null,
                 ),
-                validator: (v) => v == null || v.isEmpty ? 'Requerido' : null,
-              ),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton.icon(
+                    onPressed: () async {
+                      Navigator.pop(ctx);
+                      final creado = await _crearTipoAvion();
+                      if (creado && mounted) _showForm(aeronave: aeronave);
+                    },
+                    icon: const Icon(
+                      Icons.add,
+                      size: 16,
+                      color: AppColors.primary,
+                    ),
+                    label: const Text(
+                      'Crear tipo de avión',
+                      style: TextStyle(
+                        color: AppColors.primary,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
               TextFormField(
                 controller: capacidadCtrl,
                 decoration: const InputDecoration(labelText: 'Capacidad'),
@@ -130,7 +243,9 @@ class _AircraftsScreenState extends State<AircraftsScreen> {
               if (!formKey.currentState!.validate()) return;
               final data = {
                 'matricula': matriculaCtrl.text,
-                'modelo': modeloCtrl.text,
+                'modelo': nombresTipos.isNotEmpty
+                    ? (modeloSel ?? '')
+                    : modeloCtrl.text,
                 'capacidad': int.tryParse(capacidadCtrl.text) ?? 0,
               };
               bool ok;

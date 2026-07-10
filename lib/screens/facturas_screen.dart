@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../config/app_colors.dart';
 import '../services/api_service.dart';
+import '../services/auth_service.dart';
 
 class InvoicesScreen extends StatefulWidget {
   const InvoicesScreen({super.key});
@@ -23,7 +24,25 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
 
   Future<void> _load() async {
     setState(() => _loading = true);
-    final data = await ApiService.getFacturas();
+    var data = await ApiService.getFacturas();
+    // Usuario normal: solo SUS facturas (las de reservas de sus pasajeros).
+    final isStaff = await AuthService.isStaff();
+    if (!isStaff) {
+      final userId = await AuthService.getUserId();
+      final results = await Future.wait([
+        ApiService.getPasajeros(),
+        ApiService.getReservas(),
+      ]);
+      final misPasajeros = results[0]
+          .where((p) => p['usuario'] == userId)
+          .map((p) => p['id'])
+          .toSet();
+      final misReservas = results[1]
+          .where((r) => misPasajeros.contains(r['pasajero']))
+          .map((r) => r['id'])
+          .toSet();
+      data = data.where((f) => misReservas.contains(f['reserva'])).toList();
+    }
     if (!mounted) return;
     setState(() {
       _items = data;

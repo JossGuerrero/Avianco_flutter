@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../config/app_colors.dart';
 import '../services/api_service.dart';
+import '../services/auth_service.dart';
+import 'seat_selector_screen.dart';
 
 class PublicHomeScreen extends StatefulWidget {
   const PublicHomeScreen({super.key});
@@ -121,9 +123,10 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.1),
-                              blurRadius: 20,
-                              offset: const Offset(0, 8),
+                              color: Colors.black.withValues(alpha: 0.16),
+                              blurRadius: 28,
+                              spreadRadius: 0,
+                              offset: const Offset(0, 12),
                             ),
                           ],
                         ),
@@ -158,7 +161,19 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                                 ),
                               ],
                             ),
-                            const Divider(height: 24),
+                            Container(
+                              margin: const EdgeInsets.symmetric(vertical: 12),
+                              height: 2,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    AppColors.primary.withValues(alpha: 0.5),
+                                    AppColors.dark.withValues(alpha: 0.15),
+                                  ],
+                                ),
+                                borderRadius: BorderRadius.circular(1),
+                              ),
+                            ),
                             Row(
                               children: [
                                 const Icon(Icons.flight_land,
@@ -340,8 +355,23 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                                 return Padding(
                                   padding: const EdgeInsets.only(bottom: 16),
                                   child: GestureDetector(
-                                    onTap: () => Navigator.pushNamed(
-                                        context, '/login'),
+                                    onTap: () async {
+                                      final logged =
+                                          await AuthService.isLoggedIn();
+                                      if (!context.mounted) return;
+                                      if (logged) {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) =>
+                                                SeatSelectorScreen(vuelo: v),
+                                          ),
+                                        );
+                                      } else {
+                                        Navigator.pushNamed(
+                                            context, '/login');
+                                      }
+                                    },
                                     child: Container(
                                       decoration: BoxDecoration(
                                         color: Colors.white,
@@ -430,19 +460,73 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                                               crossAxisAlignment:
                                                   CrossAxisAlignment.start,
                                               children: [
-                                                Text(destinoCiudad,
-                                                    style: const TextStyle(
-                                                        fontSize: 18,
-                                                        fontWeight:
-                                                            FontWeight.bold)),
-                                                const SizedBox(height: 4),
+                                                Row(
+                                                  children: [
+                                                    Expanded(
+                                                      child: Text(
+                                                        destinoCiudad,
+                                                        style: const TextStyle(
+                                                            fontSize: 18,
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .bold),
+                                                      ),
+                                                    ),
+                                                    Container(
+                                                      padding:
+                                                          const EdgeInsets
+                                                              .symmetric(
+                                                          horizontal: 8,
+                                                          vertical: 3),
+                                                      decoration:
+                                                          BoxDecoration(
+                                                        color: AppColors.dark
+                                                            .withValues(
+                                                                alpha: 0.06),
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(8),
+                                                        border: Border.all(
+                                                          color: AppColors
+                                                              .dark
+                                                              .withValues(
+                                                                  alpha:
+                                                                      0.15),
+                                                        ),
+                                                      ),
+                                                      child: const Text(
+                                                        'ECONOMY',
+                                                        style: TextStyle(
+                                                          fontSize: 9,
+                                                          letterSpacing: 1,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          color: AppColors
+                                                              .greyAccent,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                const SizedBox(height: 6),
                                                 Row(
                                                   children: [
                                                     Text(
-                                                      '$origenCiudad → $destinoCiudad',
+                                                      origenCiudad.toString(),
                                                       style: const TextStyle(
                                                           color: Colors.grey,
-                                                          fontSize: 13),
+                                                          fontSize: 12),
+                                                    ),
+                                                    const SizedBox(width: 8),
+                                                    const Expanded(
+                                                      child: _RutaPunteada(),
+                                                    ),
+                                                    const SizedBox(width: 8),
+                                                    Text(
+                                                      destinoCiudad.toString(),
+                                                      style: const TextStyle(
+                                                          color: Colors.grey,
+                                                          fontSize: 12),
                                                     ),
                                                   ],
                                                 ),
@@ -464,7 +548,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                                                                     .grey)),
                                                         Text('\$${v['precio']}',
                                                             style: const TextStyle(
-                                                                fontSize: 22,
+                                                                fontSize: 26,
                                                                 fontWeight:
                                                                     FontWeight
                                                                         .bold,
@@ -551,6 +635,51 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
         icon: const Icon(Icons.login, color: Colors.white),
         label: const Text('Acceder', style: TextStyle(color: Colors.white)),
       ),
+    );
+  }
+}
+
+/// Línea punteada con avión al centro, simulando la ruta del vuelo.
+class _RutaPunteada extends StatelessWidget {
+  const _RutaPunteada();
+
+  @override
+  Widget build(BuildContext context) {
+    Widget puntos() => Expanded(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: List.generate(
+              5,
+              (_) => Container(
+                width: 3,
+                height: 1.5,
+                color: Colors.grey.shade400,
+              ),
+            ),
+          ),
+        );
+    return Row(
+      children: [
+        Container(
+          width: 5,
+          height: 5,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.grey.shade400),
+          ),
+        ),
+        puntos(),
+        const Icon(Icons.flight, size: 14, color: AppColors.primary),
+        puntos(),
+        Container(
+          width: 5,
+          height: 5,
+          decoration: const BoxDecoration(
+            shape: BoxShape.circle,
+            color: AppColors.primary,
+          ),
+        ),
+      ],
     );
   }
 }

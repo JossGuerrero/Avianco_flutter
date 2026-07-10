@@ -45,6 +45,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
           res['access'],
           res['refresh'] ?? '',
           res['is_staff'] ?? false,
+          userId: (res['user_id'] is num)
+              ? (res['user_id'] as num).toInt()
+              : (res['id'] is num ? (res['id'] as num).toInt() : null),
+          username: _userCtrl.text.trim(),
+          email: _emailCtrl.text.trim(),
         );
         if (mounted) {
           Navigator.pushNamedAndRemoveUntil(

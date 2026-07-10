@@ -79,6 +79,11 @@ class _PassengersScreenState extends State<PassengersScreen> {
   }
 
   Future<void> _showForm({Map? pasajero}) async {
+    // Dropdown de usuarios reales si el backend expone el endpoint;
+    // si no, se cae a un campo numérico.
+    final usuarios = await ApiService.getUsuarios();
+    if (!mounted) return;
+    int? usuarioId = pasajero?['usuario'];
     final usuarioCtrl = TextEditingController(
       text: pasajero?['usuario']?.toString() ?? '',
     );
@@ -99,11 +104,22 @@ class _PassengersScreenState extends State<PassengersScreen> {
     await showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: Row(
           children: [
-            const Icon(Icons.person, color: _orange),
-            const SizedBox(width: 8),
-            Text(pasajero == null ? 'Nuevo Pasajero' : 'Editar Pasajero'),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: _orange.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.person, color: _orange, size: 20),
+            ),
+            const SizedBox(width: 10),
+            Text(
+              pasajero == null ? 'Nuevo Pasajero' : 'Editar Pasajero',
+              style: const TextStyle(fontSize: 17),
+            ),
           ],
         ),
         content: Form(
@@ -112,12 +128,38 @@ class _PassengersScreenState extends State<PassengersScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                TextFormField(
-                  controller: usuarioCtrl,
-                  decoration: const InputDecoration(labelText: 'ID Usuario'),
-                  keyboardType: TextInputType.number,
-                  validator: (v) => v == null || v.isEmpty ? 'Requerido' : null,
-                ),
+                if (usuarios.isNotEmpty)
+                  StatefulBuilder(
+                    builder: (ctx, setInner) => DropdownButtonFormField<int>(
+                      initialValue: usuarioId,
+                      isExpanded: true,
+                      decoration: const InputDecoration(labelText: 'Usuario'),
+                      items: usuarios
+                          .map<DropdownMenuItem<int>>(
+                            (u) => DropdownMenuItem(
+                              value: u['id'],
+                              child: Text(
+                                (u['username'] ??
+                                        u['email'] ??
+                                        'Usuario #${u['id']}')
+                                    .toString(),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (v) => setInner(() => usuarioId = v),
+                      validator: (v) => v == null ? 'Requerido' : null,
+                    ),
+                  )
+                else
+                  TextFormField(
+                    controller: usuarioCtrl,
+                    decoration: const InputDecoration(labelText: 'ID Usuario'),
+                    keyboardType: TextInputType.number,
+                    validator: (v) =>
+                        v == null || v.isEmpty ? 'Requerido' : null,
+                  ),
                 TextFormField(
                   controller: pasaporteCtrl,
                   decoration: const InputDecoration(
@@ -149,14 +191,22 @@ class _PassengersScreenState extends State<PassengersScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar'),
+            child: const Text('Cancelar', style: TextStyle(color: Colors.grey)),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: _orange),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.dark,
+              minimumSize: const Size(120, 48),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+            ),
             onPressed: () async {
               if (!formKey.currentState!.validate()) return;
               final data = {
-                'usuario': int.tryParse(usuarioCtrl.text) ?? 0,
+                'usuario': usuarios.isNotEmpty
+                    ? usuarioId
+                    : int.tryParse(usuarioCtrl.text) ?? 0,
                 'numero_pasaporte': pasaporteCtrl.text,
                 'nacionalidad': nacionalidadCtrl.text,
                 'fecha_nacimiento': nacimientoCtrl.text,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../config/app_colors.dart';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
+import 'seat_selector_screen.dart';
 
 class FlightsScreen extends StatefulWidget {
   const FlightsScreen({super.key});
@@ -57,6 +58,163 @@ class _FlightsScreenState extends State<FlightsScreen> {
         context,
       ).showSnackBar(const SnackBar(content: Text('Vuelo eliminado')));
     }
+  }
+
+  /// Detalle del vuelo: escalas y timeline de estados.
+  void _showDetalles(Map v) {
+    final origen = v['origen_detalle']?['codigo_iata'] ?? v['origen'];
+    final destino = v['destino_detalle']?['codigo_iata'] ?? v['destino'];
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => DraggableScrollableSheet(
+        initialChildSize: 0.6,
+        minChildSize: 0.35,
+        maxChildSize: 0.9,
+        builder: (ctx, scrollCtrl) => Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: FutureBuilder<List<List<dynamic>>>(
+            future: Future.wait([
+              ApiService.getEscalasPorVuelo(v['id']),
+              ApiService.getEstadosVueloPorVuelo(v['id']),
+            ]),
+            builder: (ctx, snap) {
+              if (!snap.hasData) {
+                return const Center(
+                  child: CircularProgressIndicator(color: AppColors.primary),
+                );
+              }
+              final escalas = snap.data![0];
+              final estados = snap.data![1];
+              return ListView(
+                controller: scrollCtrl,
+                padding: const EdgeInsets.all(20),
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      margin: const EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  Text(
+                    'Vuelo #${v['id']} · $origen → $destino',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.dark,
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  const Text(
+                    'Escalas',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  if (escalas.isEmpty)
+                    const Text(
+                      'Vuelo directo, sin escalas.',
+                      style: TextStyle(color: Colors.grey),
+                    )
+                  else
+                    ...escalas.map(
+                      (e) => ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: const Icon(
+                          Icons.connecting_airports,
+                          color: AppColors.primary,
+                        ),
+                        title: Text(
+                          (e['aeropuerto_detalle']?['nombre'] ??
+                                  'Aeropuerto ${e['aeropuerto']}')
+                              .toString(),
+                        ),
+                        subtitle: Text(
+                          'Orden ${e['orden'] ?? '—'} · '
+                          'Duración ${e['duracion'] ?? e['duracion_minutos'] ?? '—'}',
+                        ),
+                      ),
+                    ),
+                  const SizedBox(height: 14),
+                  const Text(
+                    'Historial de estados',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  if (estados.isEmpty)
+                    const Text(
+                      'Sin historial de estados.',
+                      style: TextStyle(color: Colors.grey),
+                    )
+                  else
+                    ...estados.map(
+                      (e) => Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Column(
+                            children: [
+                              const Icon(
+                                Icons.circle,
+                                size: 12,
+                                color: AppColors.primary,
+                              ),
+                              Container(
+                                width: 2,
+                                height: 28,
+                                color: Colors.grey[300],
+                              ),
+                            ],
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  (e['estado'] ?? '—').toString(),
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                Text(
+                                  (e['fecha'] ?? e['fecha_cambio'] ?? '')
+                                      .toString()
+                                      .replaceAll('T', ' '),
+                                  style: TextStyle(
+                                    color: Colors.grey[600],
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  const SizedBox(height: 20),
+                ],
+              );
+            },
+          ),
+        ),
+      ),
+    );
   }
 
   String _formatDateTime(DateTime d) {
@@ -122,7 +280,7 @@ class _FlightsScreenState extends State<FlightsScreen> {
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(24),
           ),
           title: Row(
             children: [
@@ -398,12 +556,27 @@ class _FlightsScreenState extends State<FlightsScreen> {
                     final destino =
                         v['destino_detalle']?['codigo_iata'] ??
                         v['destino'].toString();
+    Future<void> abrirSelector(Map v) async {
+                      final reservado = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => SeatSelectorScreen(vuelo: v),
+                        ),
+                      );
+                      if (reservado == true) _load();
+                    }
+
                     return Card(
                       elevation: 2,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
-                      child: ListTile(
+                      child: Column(
+                        children: [
+                          ListTile(
+                        onTap: v['estado'] == 'programado'
+                            ? () => abrirSelector(v)
+                            : null,
                         leading: const CircleAvatar(
                           backgroundColor: AppColors.primary,
                           child: Icon(
@@ -458,6 +631,79 @@ class _FlightsScreenState extends State<FlightsScreen> {
                             ],
                           ],
                         ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: SizedBox(
+                                    height: 44,
+                                    child: OutlinedButton.icon(
+                                      onPressed: () => _showDetalles(v),
+                                      style: OutlinedButton.styleFrom(
+                                        side: const BorderSide(
+                                          color: AppColors.dark,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(14),
+                                        ),
+                                      ),
+                                      icon: const Icon(
+                                        Icons.info_outline,
+                                        color: AppColors.dark,
+                                        size: 16,
+                                      ),
+                                      label: const Text(
+                                        'DETALLES',
+                                        style: TextStyle(
+                                          color: AppColors.dark,
+                                          fontWeight: FontWeight.bold,
+                                          letterSpacing: 1,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                if (v['estado'] == 'programado') ...[
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    flex: 2,
+                                    child: SizedBox(
+                                      height: 44,
+                                      child: ElevatedButton.icon(
+                                        onPressed: () => abrirSelector(v),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: AppColors.primary,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(14),
+                                          ),
+                                        ),
+                                        icon: const Icon(
+                                          Icons.event_seat,
+                                          color: Colors.white,
+                                          size: 18,
+                                        ),
+                                        label: const Text(
+                                          'RESERVAR',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                            letterSpacing: 1.2,
+                                            fontSize: 13,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                     );
                   },

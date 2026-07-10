@@ -91,7 +91,28 @@ class _PromotionsScreenState extends State<PromotionsScreen> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
-          title: Text(promocion == null ? 'Nueva Promoción' : 'Editar Promoción'),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: _blue.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.local_offer, color: _blue, size: 20),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  promocion == null ? 'Nueva Promoción' : 'Editar Promoción',
+                  style: const TextStyle(fontSize: 17),
+                ),
+              ),
+            ],
+          ),
           content: Form(
             key: formKey,
             child: SingleChildScrollView(
@@ -143,10 +164,19 @@ class _PromotionsScreenState extends State<PromotionsScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancelar'),
+              child: const Text(
+                'Cancelar',
+                style: TextStyle(color: Colors.grey),
+              ),
             ),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: _blue),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.dark,
+                minimumSize: const Size(120, 48),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
               onPressed: () async {
                 if (!formKey.currentState!.validate()) return;
                 final data = {

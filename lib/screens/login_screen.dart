@@ -27,6 +27,11 @@ class _LoginScreenState extends State<LoginScreen> {
           data['access'],
           data['refresh'],
           data['is_staff'] ?? false,
+          userId: (data['user_id'] is num)
+              ? (data['user_id'] as num).toInt()
+              : (data['id'] is num ? (data['id'] as num).toInt() : null),
+          username: _userCtrl.text.trim(),
+          email: data['email']?.toString(),
         );
         if (mounted) Navigator.pushReplacementNamed(context, '/home');
       } else {

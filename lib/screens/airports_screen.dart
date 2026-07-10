@@ -74,18 +74,126 @@ class _AirportsScreenState extends State<AirportsScreen> {
     if (confirm == true) _delete(a['id']);
   }
 
+  /// Crea un país (y opcionalmente su primera ciudad) inline.
+  Future<bool> _crearPais() async {
+    final nombreCtrl = TextEditingController();
+    final creado = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: const Text('Nuevo país'),
+        content: TextField(
+          controller: nombreCtrl,
+          decoration: const InputDecoration(labelText: 'Nombre (ej: Ecuador)'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancelar', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.dark,
+              minimumSize: const Size(120, 48),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+            ),
+            onPressed: () async {
+              if (nombreCtrl.text.isEmpty) return;
+              final ok = await ApiService.createPais({
+                'nombre': nombreCtrl.text,
+              });
+              if (!ctx.mounted) return;
+              Navigator.pop(ctx, ok);
+            },
+            child: const Text('Crear', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+    return creado == true;
+  }
+
+  Future<bool> _crearCiudad(int paisId) async {
+    final nombreCtrl = TextEditingController();
+    final creado = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: const Text('Nueva ciudad'),
+        content: TextField(
+          controller: nombreCtrl,
+          decoration: const InputDecoration(labelText: 'Nombre (ej: Quito)'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancelar', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.dark,
+              minimumSize: const Size(120, 48),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+            ),
+            onPressed: () async {
+              if (nombreCtrl.text.isEmpty) return;
+              final ok = await ApiService.createCiudad({
+                'nombre': nombreCtrl.text,
+                'pais': paisId,
+              });
+              if (!ctx.mounted) return;
+              Navigator.pop(ctx, ok);
+            },
+            child: const Text('Crear', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+    return creado == true;
+  }
+
   Future<void> _showForm({Map? aeropuerto}) async {
+    // Catálogos de países/ciudades (fallback a texto libre si están vacíos)
+    final catalogos = await Future.wait([
+      ApiService.getPaises(),
+      ApiService.getCiudades(),
+    ]);
+    if (!mounted) return;
+    final paises = catalogos[0];
+    final ciudades = catalogos[1];
+
     final codigoCtrl = TextEditingController(
       text: aeropuerto?['codigo_iata'] ?? '',
     );
     final nombreCtrl = TextEditingController(text: aeropuerto?['nombre'] ?? '');
     final ciudadCtrl = TextEditingController(text: aeropuerto?['ciudad'] ?? '');
     final paisCtrl = TextEditingController(text: aeropuerto?['pais'] ?? '');
+    int? paisId;
+    String? ciudadSel;
     final formKey = GlobalKey<FormState>();
+
+    String nombreDe(dynamic x) => (x['nombre'] ?? '').toString();
+    List<dynamic> ciudadesDe(int? pais) => ciudades
+        .where(
+          (c) =>
+              pais == null ||
+              c['pais'] == pais ||
+              c['pais']?['id'] == pais,
+        )
+        .toList();
+    String paisNombre(int? id) {
+      final match = paises.where((p) => p['id'] == id);
+      return match.isNotEmpty ? nombreDe(match.first) : '';
+    }
 
     await showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (dialogCtx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
         title: Row(
           children: [
             const Icon(Icons.location_on, color: _purple),
@@ -113,16 +221,99 @@ class _AirportsScreenState extends State<AirportsScreen> {
                   decoration: const InputDecoration(labelText: 'Nombre'),
                   validator: (v) => v == null || v.isEmpty ? 'Requerido' : null,
                 ),
-                TextFormField(
-                  controller: ciudadCtrl,
-                  decoration: const InputDecoration(labelText: 'Ciudad'),
-                  validator: (v) => v == null || v.isEmpty ? 'Requerido' : null,
-                ),
-                TextFormField(
-                  controller: paisCtrl,
-                  decoration: const InputDecoration(labelText: 'País'),
-                  validator: (v) => v == null || v.isEmpty ? 'Requerido' : null,
-                ),
+                if (paises.isNotEmpty) ...[
+                  DropdownButtonFormField<int>(
+                    initialValue: paisId,
+                    isExpanded: true,
+                    decoration: const InputDecoration(labelText: 'País'),
+                    items: paises
+                        .map<DropdownMenuItem<int>>(
+                          (p) => DropdownMenuItem(
+                            value: p['id'],
+                            child: Text(
+                              nombreDe(p),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (v) => setDialogState(() {
+                      paisId = v;
+                      ciudadSel = null;
+                    }),
+                    validator: (v) => v == null ? 'Requerido' : null,
+                  ),
+                  const SizedBox(height: 8),
+                  DropdownButtonFormField<String>(
+                    key: ValueKey('ciudades-$paisId'),
+                    initialValue: ciudadSel,
+                    isExpanded: true,
+                    decoration: const InputDecoration(labelText: 'Ciudad'),
+                    items: ciudadesDe(paisId)
+                        .map<DropdownMenuItem<String>>(
+                          (c) => DropdownMenuItem(
+                            value: nombreDe(c),
+                            child: Text(
+                              nombreDe(c),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (v) => setDialogState(() => ciudadSel = v),
+                    validator: (v) => v == null ? 'Requerido' : null,
+                  ),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton.icon(
+                      onPressed: paisId == null
+                          ? null
+                          : () async {
+                              final creado = await _crearCiudad(paisId!);
+                              if (creado && ctx.mounted) {
+                                Navigator.pop(ctx);
+                                _showForm(aeropuerto: aeropuerto);
+                              }
+                            },
+                      icon: const Icon(Icons.add, size: 16),
+                      label: const Text(
+                        'Nueva ciudad',
+                        style: TextStyle(fontSize: 12),
+                      ),
+                    ),
+                  ),
+                ] else ...[
+                  TextFormField(
+                    controller: ciudadCtrl,
+                    decoration: const InputDecoration(labelText: 'Ciudad'),
+                    validator: (v) =>
+                        v == null || v.isEmpty ? 'Requerido' : null,
+                  ),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: paisCtrl,
+                    decoration: const InputDecoration(labelText: 'País'),
+                    validator: (v) =>
+                        v == null || v.isEmpty ? 'Requerido' : null,
+                  ),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton.icon(
+                      onPressed: () async {
+                        final creado = await _crearPais();
+                        if (creado && ctx.mounted) {
+                          Navigator.pop(ctx);
+                          _showForm(aeropuerto: aeropuerto);
+                        }
+                      },
+                      icon: const Icon(Icons.add, size: 16),
+                      label: const Text(
+                        'Crear país',
+                        style: TextStyle(fontSize: 12),
+                      ),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -139,8 +330,12 @@ class _AirportsScreenState extends State<AirportsScreen> {
               final data = {
                 'codigo_iata': codigoCtrl.text.toUpperCase(),
                 'nombre': nombreCtrl.text,
-                'ciudad': ciudadCtrl.text,
-                'pais': paisCtrl.text,
+                'ciudad': paises.isNotEmpty
+                    ? (ciudadSel ?? '')
+                    : ciudadCtrl.text,
+                'pais': paises.isNotEmpty
+                    ? paisNombre(paisId)
+                    : paisCtrl.text,
               };
               bool ok;
               if (aeropuerto == null) {
@@ -167,6 +362,7 @@ class _AirportsScreenState extends State<AirportsScreen> {
             child: const Text('Guardar', style: TextStyle(color: Colors.white)),
           ),
         ],
+        ),
       ),
     );
   }

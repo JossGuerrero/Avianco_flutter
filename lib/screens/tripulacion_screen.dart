@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../config/app_colors.dart';
 import '../services/api_service.dart';
+import 'asignaciones_screen.dart';
 
 class CrewScreen extends StatefulWidget {
   const CrewScreen({super.key});
@@ -102,11 +103,24 @@ class _CrewScreenState extends State<CrewScreen> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
           title: Row(
             children: [
-              const Icon(Icons.people, color: _teal),
-              const SizedBox(width: 8),
-              Text(miembro == null ? 'Nuevo Miembro' : 'Editar Miembro'),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: _teal.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.people, color: _teal, size: 20),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                miembro == null ? 'Nuevo Miembro' : 'Editar Miembro',
+                style: const TextStyle(fontSize: 17),
+              ),
             ],
           ),
           content: Form(
@@ -169,10 +183,19 @@ class _CrewScreenState extends State<CrewScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancelar'),
+              child: const Text(
+                'Cancelar',
+                style: TextStyle(color: Colors.grey),
+              ),
             ),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: _teal),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.dark,
+                minimumSize: const Size(120, 48),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
               onPressed: () async {
                 if (!formKey.currentState!.validate()) return;
                 final data = {
@@ -229,6 +252,16 @@ class _CrewScreenState extends State<CrewScreen> {
         ),
         iconTheme: const IconThemeData(color: Colors.white),
         actions: [
+          IconButton(
+            tooltip: 'Asignaciones de vuelo',
+            icon: const Icon(Icons.assignment_ind, color: Colors.white),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const CrewAssignmentsScreen(),
+              ),
+            ),
+          ),
           IconButton(
             icon: const Icon(Icons.add, color: Colors.white),
             onPressed: () => _showForm(),

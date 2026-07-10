@@ -35,12 +35,33 @@ class AuthService {
   static Future<void> saveToken(
     String access,
     String refresh,
-    bool isStaff,
-  ) async {
+    bool isStaff, {
+    int? userId,
+    String? username,
+    String? email,
+  }) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('access', access);
     await prefs.setString('refresh', refresh);
     await prefs.setBool('is_staff', isStaff);
+    if (userId != null) await prefs.setInt('user_id', userId);
+    if (username != null) await prefs.setString('username', username);
+    if (email != null) await prefs.setString('email', email);
+  }
+
+  static Future<String?> getEmail() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('email');
+  }
+
+  static Future<int?> getUserId() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt('user_id');
+  }
+
+  static Future<String?> getUsername() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('username');
   }
 
   static Future<String?> getToken() async {

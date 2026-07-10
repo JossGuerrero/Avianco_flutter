@@ -33,8 +33,15 @@ class _CheckinsScreenState extends State<CheckinsScreen> {
   }
 
   Future<void> _showForm() async {
-    final reservas = await ApiService.getReservas();
+    final results = await Future.wait([
+      ApiService.getReservas(),
+      ApiService.getTerminales(),
+      ApiService.getPuertas(),
+    ]);
     if (!mounted) return;
+    final reservas = results[0];
+    final terminales = results[1];
+    final puertas = results[2];
     if (reservas.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -46,9 +53,26 @@ class _CheckinsScreenState extends State<CheckinsScreen> {
     }
 
     int? reservaId;
+    int? terminalId;
+    String? puertaSel;
     final puertaCtrl = TextEditingController();
     final estadoCtrl = TextEditingController();
     final formKey = GlobalKey<FormState>();
+
+    String terminalLabel(dynamic t) =>
+        (t['nombre'] ?? t['codigo'] ?? 'Terminal #${t['id']}').toString();
+    String puertaLabel(dynamic p) =>
+        (p['codigo'] ?? p['numero'] ?? p['nombre'] ?? 'Puerta #${p['id']}')
+            .toString();
+    List<dynamic> puertasDe(int? terminal) => puertas
+        .where(
+          (p) =>
+              terminal == null ||
+              p['terminal'] == terminal ||
+              p['terminal']?['id'] == terminal,
+        )
+        .where((p) => p['activa'] != false)
+        .toList();
 
     String reservaLabel(dynamic r) =>
         'Reserva #${r['id']} · Asiento ${r['asiento'] ?? '—'}';
@@ -58,7 +82,7 @@ class _CheckinsScreenState extends State<CheckinsScreen> {
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(24),
           ),
           title: const Row(
             children: [
@@ -92,14 +116,57 @@ class _CheckinsScreenState extends State<CheckinsScreen> {
                     validator: (v) => v == null ? 'Requerido' : null,
                   ),
                   const SizedBox(height: 8),
-                  TextFormField(
-                    controller: puertaCtrl,
-                    decoration: const InputDecoration(
-                      labelText: 'Puerta (ej: B12)',
+                  if (terminales.isNotEmpty && puertas.isNotEmpty) ...[
+                    DropdownButtonFormField<int>(
+                      initialValue: terminalId,
+                      isExpanded: true,
+                      decoration: const InputDecoration(labelText: 'Terminal'),
+                      items: terminales
+                          .map<DropdownMenuItem<int>>(
+                            (t) => DropdownMenuItem(
+                              value: t['id'],
+                              child: Text(
+                                terminalLabel(t),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (v) => setDialogState(() {
+                        terminalId = v;
+                        puertaSel = null;
+                      }),
+                      validator: (v) => v == null ? 'Requerido' : null,
                     ),
-                    validator: (v) =>
-                        v == null || v.isEmpty ? 'Requerido' : null,
-                  ),
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<String>(
+                      key: ValueKey('puertas-$terminalId'),
+                      initialValue: puertaSel,
+                      isExpanded: true,
+                      decoration: const InputDecoration(labelText: 'Puerta'),
+                      items: puertasDe(terminalId)
+                          .map<DropdownMenuItem<String>>(
+                            (p) => DropdownMenuItem(
+                              value: puertaLabel(p),
+                              child: Text(
+                                puertaLabel(p),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (v) => setDialogState(() => puertaSel = v),
+                      validator: (v) => v == null ? 'Requerido' : null,
+                    ),
+                  ] else
+                    TextFormField(
+                      controller: puertaCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Puerta (ej: B12)',
+                      ),
+                      validator: (v) =>
+                          v == null || v.isEmpty ? 'Requerido' : null,
+                    ),
                   TextFormField(
                     controller: estadoCtrl,
                     decoration: const InputDecoration(
@@ -126,7 +193,9 @@ class _CheckinsScreenState extends State<CheckinsScreen> {
                 if (!formKey.currentState!.validate()) return;
                 final data = {
                   'reserva': reservaId,
-                  'puerta': puertaCtrl.text,
+                  'puerta': terminales.isNotEmpty && puertas.isNotEmpty
+                      ? (puertaSel ?? '')
+                      : puertaCtrl.text,
                   'estado': estadoCtrl.text.isEmpty
                       ? 'Pendiente'
                       : estadoCtrl.text,

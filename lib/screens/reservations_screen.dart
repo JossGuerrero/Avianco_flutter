@@ -24,7 +24,18 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
   Future<void> _load() async {
     setState(() => _loading = true);
     _isStaff = await AuthService.isStaff();
-    final data = await ApiService.getReservas();
+    var data = await ApiService.getReservas();
+    // Usuario normal: solo SUS reservas (las de sus propios pasajeros).
+    // El backend devuelve todas, así que se filtra en el cliente.
+    if (!_isStaff) {
+      final userId = await AuthService.getUserId();
+      final pasajeros = await ApiService.getPasajeros();
+      final misPasajeros = pasajeros
+          .where((p) => p['usuario'] == userId)
+          .map((p) => p['id'])
+          .toSet();
+      data = data.where((r) => misPasajeros.contains(r['pasajero'])).toList();
+    }
     if (!mounted) return;
     setState(() {
       _reservas = data;
@@ -98,7 +109,7 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(24),
           ),
           title: Row(
             children: [
@@ -223,26 +234,54 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.all(12),
-          child: SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.dark,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
+        // Solo staff crea reservas manuales (gestión directa sin pago).
+        // El usuario normal reserva desde Vuelos: selector de asiento + pago.
+        if (_isStaff)
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.dark,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                onPressed: () => _showForm(),
+                icon: const Icon(Icons.add, color: Colors.white),
+                label: const Text(
+                  'Nueva Reserva',
+                  style: TextStyle(color: Colors.white),
                 ),
               ),
-              onPressed: () => _showForm(),
-              icon: const Icon(Icons.add, color: Colors.white),
-              label: const Text(
-                'Nueva Reserva',
-                style: TextStyle(color: Colors.white),
+            ),
+          )
+        else
+          Container(
+            margin: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: AppColors.primary.withValues(alpha: 0.25),
               ),
             ),
+            child: const Row(
+              children: [
+                Icon(Icons.info_outline, color: AppColors.primary, size: 20),
+                SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Para reservar un boleto, ve a Vuelos y toca "Reservar" '
+                    'en el vuelo que quieras.',
+                    style: TextStyle(fontSize: 13, color: AppColors.dark),
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
         Expanded(
           child: _loading
               ? const Center(

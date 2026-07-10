@@ -3,30 +3,33 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../config/app_colors.dart';
 
-/// Selector de país reutilizable basado en restcountries.com.
-/// Muestra un modal bottom sheet con buscador y banderas.
-/// Devuelve el nombre del país seleccionado (en español si existe).
+/// Selector de país reutilizable.
+/// Usa flagcdn.com (restcountries v3.1 fue deprecada y la v5 exige API key):
+/// nombres en español desde /es/codes.json y banderas PNG por código ISO.
 class CountryPicker {
   static List<Map<String, String>>? _cache;
 
   static Future<List<Map<String, String>>> _fetchCountries() async {
     if (_cache != null) return _cache!;
-    final response = await http.get(
-      Uri.parse(
-        'https://restcountries.com/v3.1/all?fields=name,flags,cca2,translations',
-      ),
-    );
-    if (response.statusCode != 200) return [];
-    final List<dynamic> data = jsonDecode(response.body);
-    final countries = data.map<Map<String, String>>((c) {
-      final spa = c['translations']?['spa']?['common'];
-      final common = c['name']?['common'] ?? '';
-      return {
-        'name': (spa ?? common).toString(),
-        'flag': (c['flags']?['png'] ?? '').toString(),
-        'code': (c['cca2'] ?? '').toString(),
-      };
-    }).toList();
+    final response = await http
+        .get(Uri.parse('https://flagcdn.com/es/codes.json'))
+        .timeout(const Duration(seconds: 10));
+    debugPrint('CountryPicker flagcdn [${response.statusCode}]');
+    if (response.statusCode != 200) {
+      throw Exception('HTTP ${response.statusCode}');
+    }
+    final Map<String, dynamic> data = jsonDecode(response.body);
+    final countries = data.entries
+        // Excluye subdivisiones tipo 'us-ak' (estados de EE.UU.)
+        .where((e) => !e.key.contains('-') && e.value.toString().isNotEmpty)
+        .map<Map<String, String>>(
+          (e) => {
+            'name': e.value.toString(),
+            'flag': 'https://flagcdn.com/w80/${e.key}.png',
+            'code': e.key.toUpperCase(),
+          },
+        )
+        .toList();
     countries.sort((a, b) => a['name']!.compareTo(b['name']!));
     _cache = countries;
     return countries;
@@ -54,6 +57,7 @@ class _CountryPickerSheetState extends State<_CountryPickerSheet> {
   List<Map<String, String>> _all = [];
   List<Map<String, String>> _filtered = [];
   bool _loading = true;
+  String? _error;
   final _searchCtrl = TextEditingController();
 
   @override
@@ -63,13 +67,26 @@ class _CountryPickerSheetState extends State<_CountryPickerSheet> {
   }
 
   Future<void> _load() async {
-    final countries = await CountryPicker._fetchCountries();
-    if (!mounted) return;
     setState(() {
-      _all = countries;
-      _filtered = countries;
-      _loading = false;
+      _loading = true;
+      _error = null;
     });
+    try {
+      final countries = await CountryPicker._fetchCountries();
+      if (!mounted) return;
+      setState(() {
+        _all = countries;
+        _filtered = countries;
+        _loading = false;
+      });
+    } catch (e) {
+      debugPrint('CountryPicker error: $e');
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _error = 'No se pudo cargar la lista de países.\nRevisa tu conexión.';
+      });
+    }
   }
 
   void _filter(String query) {
@@ -120,6 +137,10 @@ class _CountryPickerSheetState extends State<_CountryPickerSheet> {
                     borderRadius: BorderRadius.circular(16),
                     borderSide: BorderSide.none,
                   ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
                 ),
               ),
             ),
@@ -128,6 +149,44 @@ class _CountryPickerSheetState extends State<_CountryPickerSheet> {
                   ? const Center(
                       child: CircularProgressIndicator(
                         color: AppColors.primary,
+                      ),
+                    )
+                  : _error != null
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.wifi_off,
+                            size: 56,
+                            color: Colors.grey,
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            _error!,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(color: Colors.grey),
+                          ),
+                          const SizedBox(height: 16),
+                          ElevatedButton.icon(
+                            onPressed: _load,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.dark,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              minimumSize: const Size(140, 48),
+                            ),
+                            icon: const Icon(
+                              Icons.refresh,
+                              color: Colors.white,
+                            ),
+                            label: const Text(
+                              'Reintentar',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ),
+                        ],
                       ),
                     )
                   : _filtered.isEmpty
