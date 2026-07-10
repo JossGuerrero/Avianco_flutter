@@ -22,7 +22,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
   // Imágenes reales de ciudades por código IATA
   static const Map<String, String> _cityImages = {
     'UIO': 'https://images.unsplash.com/photo-1531968455001-5c5272a41129?w=600',
-    'GYE': 'https://images.unsplash.com/photo-1597006043577-0b05b33e91fa?w=600',
+    'GYE': 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600',
     'BOG': 'https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=600',
     'LIM': 'https://images.unsplash.com/photo-1526392060635-9d6019884377?w=600',
     'EZE': 'https://images.unsplash.com/photo-1589909202802-8f4aadce1849?w=600',

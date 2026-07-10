@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s -L \"https://restcountries.com/docs/legacy-api-deprecation\")",
+      "Bash(curl -s -L -o /dev/null -w \"HTTP %{http_code} size %{size_download}\\\\n\" \"https://restcountries.com/v5/countries?fields=name,flags,cca2,translations\")",
+      "Bash(curl -s -o /dev/null -w \"candidata GYE => HTTP %{http_code} type %{content_type}\\\\n\" \"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600\")"
+    ]
+  }
+}
