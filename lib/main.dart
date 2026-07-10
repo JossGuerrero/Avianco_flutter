@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'config/app_colors.dart';
 import 'screens/public_home_screen.dart';
 import 'screens/login_screen.dart';
+import 'screens/register_screen.dart';
 import 'screens/home_screen.dart';
 import 'services/auth_service.dart';
 
@@ -20,13 +22,14 @@ class AviancoApp extends StatelessWidget {
       title: 'Avianco',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF7B2D8B)),
+        colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary),
         useMaterial3: true,
       ),
       initialRoute: initialRoute,
       routes: {
         '/': (context) => const PublicHomeScreen(),
         '/login': (context) => const LoginScreen(),
+        '/register': (context) => const RegisterScreen(),
         '/home': (context) => const HomeScreen(),
       },
     );

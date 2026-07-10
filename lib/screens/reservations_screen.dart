@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../config/app_colors.dart';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
 
@@ -24,6 +25,7 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
     setState(() => _loading = true);
     _isStaff = await AuthService.isStaff();
     final data = await ApiService.getReservas();
+    if (!mounted) return;
     setState(() {
       _reservas = data;
       _loading = false;
@@ -33,11 +35,11 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
   Color _estadoColor(String estado) {
     switch (estado) {
       case 'confirmada':
-        return const Color(0xFF2E7D32);
+        return AppColors.success;
       case 'cancelada':
-        return Colors.red;
+        return AppColors.primary;
       case 'embarcado':
-        return const Color(0xFF1565C0);
+        return AppColors.greyDark;
       default:
         return Colors.grey;
     }
@@ -45,70 +47,152 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
 
   Future<void> _delete(int id) async {
     final ok = await ApiService.deleteReserva(id);
+    if (!mounted) return;
     if (ok) {
       _load();
-      if (mounted)
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Reserva eliminada')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Reserva eliminada')));
     }
   }
 
   Future<void> _showForm({Map? reserva}) async {
-    final vueloCtrl = TextEditingController(
-      text: reserva?['vuelo']?.toString() ?? '',
-    );
-    final pasajeroCtrl = TextEditingController(
-      text: reserva?['pasajero']?.toString() ?? '',
-    );
+    // Catálogos para dropdowns
+    final results = await Future.wait([
+      ApiService.getVuelos(),
+      ApiService.getPasajeros(),
+    ]);
+    if (!mounted) return;
+    final vuelos = results[0];
+    final pasajeros = results[1];
+
+    if (vuelos.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No hay vuelos disponibles para reservar'),
+          backgroundColor: AppColors.primary,
+        ),
+      );
+      return;
+    }
+
+    int? vueloId = reserva?['vuelo'];
+    int? pasajeroId = reserva?['pasajero'];
     final asientoCtrl = TextEditingController(text: reserva?['asiento'] ?? '');
+    final formKey = GlobalKey<FormState>();
+
+    String vueloLabel(dynamic v) {
+      final o = v['origen_detalle']?['codigo_iata'] ?? v['origen'];
+      final d = v['destino_detalle']?['codigo_iata'] ?? v['destino'];
+      final fecha = (v['fecha_salida'] ?? '').toString().split('T').first;
+      return '$o → $d · $fecha';
+    }
+
+    String pasajeroLabel(dynamic p) {
+      final nombre = (p['nombre_completo'] ?? '').toString().trim();
+      return nombre.isNotEmpty ? nombre : 'Pasajero #${p['id']}';
+    }
 
     await showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(reserva == null ? 'Nueva Reserva' : 'Editar Reserva'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: vueloCtrl,
-              decoration: const InputDecoration(labelText: 'ID Vuelo'),
-              keyboardType: TextInputType.number,
-            ),
-            TextField(
-              controller: pasajeroCtrl,
-              decoration: const InputDecoration(labelText: 'ID Pasajero'),
-              keyboardType: TextInputType.number,
-            ),
-            TextField(
-              controller: asientoCtrl,
-              decoration: const InputDecoration(labelText: 'Asiento (ej: 12A)'),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar'),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF1565C0),
+          title: Row(
+            children: [
+              const Icon(Icons.book_online, color: AppColors.primary),
+              const SizedBox(width: 8),
+              Text(reserva == null ? 'Nueva Reserva' : 'Editar Reserva'),
+            ],
+          ),
+          content: Form(
+            key: formKey,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  DropdownButtonFormField<int>(
+                    initialValue: vueloId,
+                    isExpanded: true,
+                    decoration: const InputDecoration(labelText: 'Vuelo'),
+                    items: vuelos
+                        .map<DropdownMenuItem<int>>(
+                          (v) => DropdownMenuItem(
+                            value: v['id'],
+                            child: Text(
+                              vueloLabel(v),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (v) => setDialogState(() => vueloId = v),
+                    validator: (v) => v == null ? 'Requerido' : null,
+                  ),
+                  const SizedBox(height: 8),
+                  if (pasajeros.isNotEmpty)
+                    DropdownButtonFormField<int>(
+                      initialValue: pasajeroId,
+                      isExpanded: true,
+                      decoration: const InputDecoration(
+                        labelText: 'Pasajero',
+                      ),
+                      items: pasajeros
+                          .map<DropdownMenuItem<int>>(
+                            (p) => DropdownMenuItem(
+                              value: p['id'],
+                              child: Text(
+                                pasajeroLabel(p),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (v) => setDialogState(() => pasajeroId = v),
+                      validator: (v) => v == null ? 'Requerido' : null,
+                    ),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: asientoCtrl,
+                    decoration: const InputDecoration(
+                      labelText: 'Asiento (ej: 12A)',
+                    ),
+                    validator: (v) =>
+                        v == null || v.isEmpty ? 'Requerido' : null,
+                  ),
+                ],
+              ),
             ),
-            onPressed: () async {
-              final data = {
-                'vuelo': int.tryParse(vueloCtrl.text) ?? 0,
-                'pasajero': int.tryParse(pasajeroCtrl.text) ?? 0,
-                'asiento': asientoCtrl.text,
-                'estado': 'confirmada',
-              };
-              bool ok;
-              if (reserva == null) {
-                ok = await ApiService.createReserva(data);
-              } else {
-                ok = await ApiService.updateReserva(reserva['id'], data);
-              }
-              if (mounted) {
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.dark,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onPressed: () async {
+                if (!formKey.currentState!.validate()) return;
+                final data = {
+                  'vuelo': vueloId,
+                  'pasajero': pasajeroId,
+                  'asiento': asientoCtrl.text,
+                  'estado': reserva?['estado'] ?? 'confirmada',
+                };
+                bool ok;
+                if (reserva == null) {
+                  ok = await ApiService.createReserva(data);
+                } else {
+                  ok = await ApiService.updateReserva(reserva['id'], data);
+                }
+                if (!ctx.mounted) return;
                 Navigator.pop(ctx);
                 if (ok) {
                   _load();
@@ -119,15 +203,18 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('Error al guardar'),
-                      backgroundColor: Colors.red,
+                      backgroundColor: AppColors.primary,
                     ),
                   );
                 }
-              }
-            },
-            child: const Text('Guardar', style: TextStyle(color: Colors.white)),
-          ),
-        ],
+              },
+              child: const Text(
+                'Guardar',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -142,7 +229,10 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
             width: double.infinity,
             child: ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF1565C0),
+                backgroundColor: AppColors.dark,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
               ),
               onPressed: () => _showForm(),
               icon: const Icon(Icons.add, color: Colors.white),
@@ -156,10 +246,22 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
         Expanded(
           child: _loading
               ? const Center(
-                  child: CircularProgressIndicator(color: Color(0xFF1565C0)),
+                  child: CircularProgressIndicator(color: AppColors.primary),
                 )
               : _reservas.isEmpty
-              ? const Center(child: Text('No hay reservas'))
+              ? const Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.book_online, size: 64, color: Colors.grey),
+                      SizedBox(height: 8),
+                      Text(
+                        'No hay reservas',
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                )
               : ListView.separated(
                   padding: const EdgeInsets.all(12),
                   itemCount: _reservas.length,
@@ -167,9 +269,13 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
                   itemBuilder: (ctx, i) {
                     final r = _reservas[i];
                     return Card(
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
                       child: ListTile(
                         leading: const CircleAvatar(
-                          backgroundColor: Color(0xFF1565C0),
+                          backgroundColor: AppColors.greyDark,
                           child: Icon(Icons.book_online, color: Colors.white),
                         ),
                         title: Text(
@@ -204,7 +310,7 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
                                 icon: const Icon(
                                   Icons.edit,
                                   size: 18,
-                                  color: Color(0xFF1565C0),
+                                  color: AppColors.dark,
                                 ),
                                 onPressed: () => _showForm(reserva: r),
                               ),
@@ -212,7 +318,7 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
                                 icon: const Icon(
                                   Icons.delete,
                                   size: 18,
-                                  color: Colors.red,
+                                  color: AppColors.primary,
                                 ),
                                 onPressed: () => _delete(r['id']),
                               ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../config/app_colors.dart';
 import '../services/api_service.dart';
 
 class InvoicesScreen extends StatefulWidget {
@@ -12,7 +13,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
   List<dynamic> _items = [];
   bool _loading = true;
 
-  static const _grey = Color(0xFF9E9E9E);
+  static const _grey = AppColors.greyAccent;
 
   @override
   void initState() {
@@ -33,11 +34,11 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
   Color _estadoColor(String estado) {
     switch (estado) {
       case 'pagada':
-        return const Color(0xFF2E7D32);
+        return AppColors.success;
       case 'pendiente':
-        return const Color(0xFFE65100);
+        return AppColors.greyDark;
       case 'anulada':
-        return Colors.red;
+        return AppColors.primary;
       default:
         return _grey;
     }

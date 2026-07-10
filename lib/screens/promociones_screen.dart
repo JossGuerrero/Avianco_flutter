@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../config/app_colors.dart';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
 
@@ -14,7 +15,7 @@ class _PromotionsScreenState extends State<PromotionsScreen> {
   bool _loading = true;
   bool _isStaff = false;
 
-  static const _blue = Color(0xFF1565C0);
+  static const _blue = AppColors.primaryLight;
 
   @override
   void initState() {

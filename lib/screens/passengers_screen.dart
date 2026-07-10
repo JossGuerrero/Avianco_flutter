@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import '../config/app_colors.dart';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
+import '../widgets/country_picker.dart';
 
 class PassengersScreen extends StatefulWidget {
   const PassengersScreen({super.key});
@@ -15,8 +17,8 @@ class _PassengersScreenState extends State<PassengersScreen> {
   bool _isStaff = false;
   final _searchCtrl = TextEditingController();
 
-  static const _purple = Color(0xFF7B2D8B);
-  static const _orange = Color(0xFFE65100);
+  static const _purple = AppColors.dark;
+  static const _orange = AppColors.primary;
 
   @override
   void initState() {
@@ -123,9 +125,8 @@ class _PassengersScreenState extends State<PassengersScreen> {
                   ),
                   validator: (v) => v == null || v.isEmpty ? 'Requerido' : null,
                 ),
-                TextFormField(
+                CountryFormField(
                   controller: nacionalidadCtrl,
-                  decoration: const InputDecoration(labelText: 'Nacionalidad'),
                   validator: (v) => v == null || v.isEmpty ? 'Requerido' : null,
                 ),
                 TextFormField(

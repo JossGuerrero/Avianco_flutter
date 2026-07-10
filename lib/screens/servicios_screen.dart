@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../config/app_colors.dart';
 import '../services/api_service.dart' as api;
 
 class ServicesScreen extends StatefulWidget {
@@ -44,7 +45,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
         return Card(
           child: ListTile(
             leading: const CircleAvatar(
-              backgroundColor: Color(0xFF512DA8),
+              backgroundColor: AppColors.deepRed,
               child: Icon(Icons.room_service, color: Colors.white),
             ),
             title: Text(name.toString()),

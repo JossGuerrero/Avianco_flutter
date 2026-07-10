@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../config/app_colors.dart';
 import '../services/auth_service.dart';
 import '../widgets/module_card.dart';
 import 'airports_screen.dart';
@@ -59,7 +60,9 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xFF7B2D8B),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(gradient: AppColors.mainGradient),
+        ),
         title: const Row(
           children: [
             Icon(Icons.airplanemode_active, color: Colors.white),
@@ -88,7 +91,7 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: const EdgeInsets.fromLTRB(24, 24, 24, 20),
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [Color(0xFF4A1060), Color(0xFF7B2D8B)],
+                colors: [AppColors.darkRed, AppColors.dark],
               ),
             ),
             child: Column(
@@ -123,25 +126,25 @@ class _HomeScreenState extends State<HomeScreen> {
                         ModuleCard(
                           title: 'Vuelos',
                           icon: Icons.flight_takeoff,
-                          color: const Color(0xFF2E7D32),
+                          color: AppColors.primary,
                           onTap: () => setState(() => _selectedIndex = 1),
                         ),
                         ModuleCard(
                           title: 'Reservas',
                           icon: Icons.book_online,
-                          color: const Color(0xFF1565C0),
+                          color: AppColors.greyDark,
                           onTap: () => setState(() => _selectedIndex = 2),
                         ),
                         ModuleCard(
                           title: 'Pasajeros',
                           icon: Icons.person,
-                          color: const Color(0xFFE65100),
+                          color: AppColors.darkRed,
                           onTap: () => setState(() => _selectedIndex = 3),
                         ),
                         ModuleCard(
                           title: 'Aeropuertos',
                           icon: Icons.location_on,
-                          color: const Color(0xFF7B2D8B),
+                          color: AppColors.darkAlt,
                           onTap: () => setState(() => _selectedIndex = 4),
                         ),
 
@@ -149,7 +152,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ModuleCard(
                           title: 'Servicios',
                           icon: Icons.room_service,
-                          color: const Color(0xFF512DA8),
+                          color: AppColors.deepRed,
                           onTap: () => Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -160,7 +163,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ModuleCard(
                           title: 'Promociones',
                           icon: Icons.local_offer,
-                          color: const Color(0xFF1565C0),
+                          color: AppColors.primaryLight,
                           onTap: () => Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -171,7 +174,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ModuleCard(
                           title: 'Facturas',
                           icon: Icons.receipt_long,
-                          color: const Color(0xFF9E9E9E),
+                          color: AppColors.greyAccent,
                           onTap: () => Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -182,7 +185,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ModuleCard(
                           title: 'Check-ins',
                           icon: Icons.how_to_reg,
-                          color: const Color(0xFF0277BD),
+                          color: AppColors.darkRed,
                           onTap: () => Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -196,7 +199,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ModuleCard(
                             title: 'Dashboard',
                             icon: Icons.dashboard,
-                            color: const Color(0xFF4A1060),
+                            color: AppColors.dark,
                             onTap: () => Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -207,7 +210,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ModuleCard(
                             title: 'Aeronaves',
                             icon: Icons.airplanemode_active,
-                            color: const Color(0xFF4A1060),
+                            color: AppColors.darkAlt,
                             onTap: () => Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -218,7 +221,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ModuleCard(
                             title: 'Tripulación',
                             icon: Icons.people,
-                            color: const Color(0xFF00695C),
+                            color: AppColors.deepRed,
                             onTap: () => Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -229,7 +232,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ModuleCard(
                             title: 'Asientos',
                             icon: Icons.event_seat,
-                            color: const Color(0xFF2E7D32),
+                            color: AppColors.greyDark,
                             onTap: () => Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -248,7 +251,7 @@ class _HomeScreenState extends State<HomeScreen> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex == 0 ? 0 : _selectedIndex,
         type: BottomNavigationBarType.fixed,
-        selectedItemColor: const Color(0xFF7B2D8B),
+        selectedItemColor: AppColors.primary,
         unselectedItemColor: Colors.grey,
         onTap: (index) {
           setState(() {

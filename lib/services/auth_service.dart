@@ -16,6 +16,22 @@ class AuthService {
     return jsonDecode(response.body);
   }
 
+  static Future<Map<String, dynamic>> register(
+    Map<String, dynamic> data,
+  ) async {
+    final response = await http.post(
+      Uri.parse('${Api.baseUrl}/auth/registro/'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(data),
+    );
+    final body = jsonDecode(response.body);
+    final Map<String, dynamic> result = body is Map<String, dynamic>
+        ? Map<String, dynamic>.from(body)
+        : {'detail': body.toString()};
+    result['ok'] = response.statusCode == 200 || response.statusCode == 201;
+    return result;
+  }
+
   static Future<void> saveToken(
     String access,
     String refresh,

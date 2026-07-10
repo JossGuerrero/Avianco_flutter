@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../config/app_colors.dart';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
 
@@ -15,7 +16,7 @@ class _AirportsScreenState extends State<AirportsScreen> {
   bool _isStaff = false;
   final _searchCtrl = TextEditingController();
 
-  static const _purple = Color(0xFF7B2D8B);
+  static const _purple = AppColors.darkAlt;
 
   @override
   void initState() {

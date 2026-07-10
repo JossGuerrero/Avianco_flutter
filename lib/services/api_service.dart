@@ -31,6 +31,32 @@ class ApiService {
   static Future<int> getPasajerosCount() => _count('pasajeros');
   static Future<int> getAeropuertosCount() => _count('aeropuertos');
 
+  // ---------- ESTADISTICAS (devuelve {} si el endpoint falla) ----------
+  static Future<Map<String, dynamic>> _getStats(String endpoint) async {
+    try {
+      final headers = await _headers();
+      final response = await http.get(
+        Uri.parse('${Api.baseUrl}/$endpoint/estadisticas/'),
+        headers: headers,
+      );
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body);
+        if (body is Map<String, dynamic>) return body;
+        if (body is List) return {'results': body};
+      }
+    } catch (_) {
+      // Endpoint no disponible: el dashboard muestra 0 o guion
+    }
+    return {};
+  }
+
+  static Future<Map<String, dynamic>> getReservasEstadisticas() =>
+      _getStats('reservas');
+  static Future<Map<String, dynamic>> getVuelosEstadisticas() =>
+      _getStats('vuelos');
+  static Future<Map<String, dynamic>> getAeronavesEstadisticas() =>
+      _getStats('aeronaves');
+
   // ---------- ENDPOINTS PUBLICOS (sin token) ----------
   static Future<List<dynamic>> getVuelosPublico() async {
     final response = await http.get(

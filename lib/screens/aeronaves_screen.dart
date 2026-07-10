@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../config/app_colors.dart';
 import '../services/api_service.dart';
 
 class AircraftsScreen extends StatefulWidget {
@@ -13,7 +14,7 @@ class _AircraftsScreenState extends State<AircraftsScreen> {
   bool _loading = true;
   final _searchCtrl = TextEditingController();
 
-  static const _blue = Color(0xFF1565C0);
+  static const _blue = AppColors.darkAlt;
 
   @override
   void initState() {

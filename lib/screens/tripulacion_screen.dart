@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../config/app_colors.dart';
 import '../services/api_service.dart';
 
 class CrewScreen extends StatefulWidget {
@@ -13,7 +14,7 @@ class _CrewScreenState extends State<CrewScreen> {
   bool _loading = true;
   final _searchCtrl = TextEditingController();
 
-  static const _teal = Color(0xFF00695C);
+  static const _teal = AppColors.deepRed;
 
   @override
   void initState() {
