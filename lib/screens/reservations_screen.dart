@@ -332,56 +332,114 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
-                      child: ListTile(
-                        leading: const CircleAvatar(
-                          backgroundColor: AppColors.greyDark,
-                          child: Icon(Icons.book_online, color: Colors.white),
-                        ),
-                        title: Text(
-                          'Reserva #${r['id']} — Asiento ${r['asiento']}',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        subtitle: Text(
-                          'Vuelo: ${r['vuelo']} | Pasajero: ${r['pasajero']}',
-                        ),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: _estadoColor(r['estado']),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                r['estado'],
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 11,
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.airplane_ticket,
+                                      color: AppColors.primary,
+                                      size: 20,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'Reserva #${r['id']}',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                        color: AppColors.dark,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.dark,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    'Asiento ${r['asiento'] ?? '—'}',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                            if (_isStaff) ...[
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.edit,
-                                  size: 18,
-                                  color: AppColors.dark,
+                            const Divider(height: 24, thickness: 1),
+                            Row(
+                              children: [
+                                const Icon(Icons.flight, size: 16, color: Colors.grey),
+                                const SizedBox(width: 6),
+                                Text(
+                                  'Vuelo: ${r['vuelo']}',
+                                  style: const TextStyle(color: Colors.grey, fontSize: 13),
                                 ),
-                                onPressed: () => _showForm(reserva: r),
-                              ),
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.delete,
-                                  size: 18,
-                                  color: AppColors.primary,
+                                const SizedBox(width: 16),
+                                const Icon(Icons.person, size: 16, color: Colors.grey),
+                                const SizedBox(width: 6),
+                                Text(
+                                  'Pasajero: ${r['pasajero']}',
+                                  style: const TextStyle(color: Colors.grey, fontSize: 13),
                                 ),
-                                onPressed: () => _delete(r['id']),
-                              ),
-                            ],
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: _estadoColor(r['estado']),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    r['estado'],
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 11,
+                                    ),
+                                  ),
+                                ),
+                                if (_isStaff)
+                                  Row(
+                                    children: [
+                                      IconButton(
+                                        icon: const Icon(
+                                          Icons.edit,
+                                          size: 18,
+                                          color: AppColors.dark,
+                                        ),
+                                        onPressed: () => _showForm(reserva: r),
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(
+                                          Icons.delete,
+                                          size: 18,
+                                          color: AppColors.primary,
+                                        ),
+                                        onPressed: () => _delete(r['id']),
+                                      ),
+                                    ],
+                                  ),
+                              ],
+                            ),
                           ],
                         ),
                       ),
