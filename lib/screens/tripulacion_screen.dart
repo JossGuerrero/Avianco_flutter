@@ -244,13 +244,16 @@ class _CrewScreenState extends State<CrewScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: _teal,
         title: const Text(
           'Tripulación',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         iconTheme: const IconThemeData(color: Colors.white),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(gradient: AppColors.mainGradient),
+        ),
         actions: [
           IconButton(
             tooltip: 'Asignaciones de vuelo',
