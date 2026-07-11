@@ -44,14 +44,35 @@ class _ServicesScreenState extends State<ServicesScreen> {
         final name = item['nombre'] ?? item['name'] ?? '';
         final price = item['precio'] ?? item['price'] ?? '';
         return Card(
+          elevation: 2,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           child: ListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             leading: const CircleAvatar(
-              backgroundColor: AppColors.deepRed,
+              backgroundColor: AppColors.dark,
               child: Icon(Icons.room_service, color: Colors.white),
             ),
-            title: Text(name.toString()),
-            subtitle: Text('USD $price'),
-            trailing: const Icon(Icons.chevron_right),
+            title: Text(
+              name.toString(),
+              style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.dark),
+            ),
+            trailing: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                'USD $price',
+                style: const TextStyle(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                ),
+              ),
+            ),
           ),
         );
       },
