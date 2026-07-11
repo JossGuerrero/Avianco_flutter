@@ -121,25 +121,41 @@ class _RegisterScreenState extends State<RegisterScreen> {
               key: _formKey,
               child: Column(
                 children: [
-                  const SizedBox(height: 24),
-                  const Icon(
-                    Icons.airplanemode_active,
-                    size: 64,
-                    color: Colors.white,
+                  const SizedBox(height: 20),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Colors.white24,
+                        width: 1.5,
+                      ),
+                    ),
+                    child: const Icon(
+                      Icons.airplanemode_active,
+                      size: 40,
+                      color: Colors.white,
+                    ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 16),
                   const Text(
                     'Crear cuenta',
                     style: TextStyle(
-                      fontSize: 30,
+                      fontSize: 28,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
-                      letterSpacing: 1,
+                      letterSpacing: 1.5,
                     ),
                   ),
+                  const SizedBox(height: 4),
                   const Text(
                     'Únete a Avianco Airlines',
-                    style: TextStyle(color: Colors.white70, fontSize: 14),
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 14,
+                      letterSpacing: 0.5,
+                    ),
                   ),
                   const SizedBox(height: 36),
                   TextFormField(
