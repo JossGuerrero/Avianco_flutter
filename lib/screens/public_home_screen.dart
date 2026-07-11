@@ -457,13 +457,12 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                                     child: Container(
                                       decoration: BoxDecoration(
                                         color: Colors.white,
-                                        borderRadius: BorderRadius.circular(18),
+                                        borderRadius: BorderRadius.circular(20),
                                         boxShadow: [
                                           BoxShadow(
-                                            color: Colors.black
-                                                .withValues(alpha: 0.08),
-                                            blurRadius: 12,
-                                            offset: const Offset(0, 4),
+                                            color: Colors.black.withValues(alpha: 0.08),
+                                            blurRadius: 16,
+                                            offset: const Offset(0, 6),
                                           ),
                                         ],
                                       ),
@@ -471,11 +470,11 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
                                         children: [
-                                          // Imagen del destino
+                                          // Imagen del destino con tags flotantes
                                           ClipRRect(
                                             borderRadius:
                                                 const BorderRadius.vertical(
-                                                    top: Radius.circular(18)),
+                                                    top: Radius.circular(20)),
                                             child: Stack(
                                               children: [
                                                 Image.network(
@@ -508,9 +507,10 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                                                         size: 48),
                                                   ),
                                                 ),
+                                                // Tag de estado (arriba izquierda)
                                                 Positioned(
                                                   top: 12,
-                                                  right: 12,
+                                                  left: 12,
                                                   child: Container(
                                                     padding: const EdgeInsets
                                                         .symmetric(
@@ -525,17 +525,48 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                                                               20),
                                                     ),
                                                     child: Text(
-                                                      v['estado'] ?? '',
+                                                      (v['estado'] ?? '').toString().toUpperCase(),
                                                       style: const TextStyle(
                                                           color: Colors.white,
-                                                          fontSize: 11),
+                                                          fontWeight: FontWeight.bold,
+                                                          fontSize: 10),
+                                                    ),
+                                                  ),
+                                                ),
+                                                // Tag de precio (abajo derecha)
+                                                Positioned(
+                                                  bottom: 12,
+                                                  right: 12,
+                                                  child: Container(
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                        horizontal: 12,
+                                                        vertical: 6),
+                                                    decoration: BoxDecoration(
+                                                      color: AppColors.primary,
+                                                      borderRadius:
+                                                          BorderRadius.circular(12),
+                                                      boxShadow: [
+                                                        BoxShadow(
+                                                          color: AppColors.primary.withValues(alpha: 0.3),
+                                                          blurRadius: 6,
+                                                          offset: const Offset(0, 3),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    child: Text(
+                                                      '\$${v['precio']}',
+                                                      style: const TextStyle(
+                                                          color: Colors.white,
+                                                          fontWeight: FontWeight.bold,
+                                                          fontSize: 16),
                                                     ),
                                                   ),
                                                 ),
                                               ],
                                             ),
                                           ),
-                                          // Info
+                                          // Info estilo pase de abordar
                                           Padding(
                                             padding: const EdgeInsets.all(16),
                                             child: Column(
@@ -544,108 +575,82 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                                               children: [
                                                 Row(
                                                   children: [
+                                                    // Origen
                                                     Expanded(
-                                                      child: Text(
-                                                        destinoCiudad,
-                                                        style: const TextStyle(
-                                                            fontSize: 18,
-                                                            fontWeight:
-                                                                FontWeight
-                                                                    .bold),
+                                                      child: Column(
+                                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                                        children: [
+                                                          Text(
+                                                            origenIata ?? '—',
+                                                            style: const TextStyle(
+                                                                fontSize: 22,
+                                                                fontWeight: FontWeight.bold,
+                                                                color: AppColors.dark),
+                                                          ),
+                                                          Text(
+                                                            origenCiudad,
+                                                            style: const TextStyle(
+                                                                fontSize: 12,
+                                                                color: Colors.grey),
+                                                          ),
+                                                        ],
                                                       ),
                                                     ),
-                                                    Container(
-                                                      padding:
-                                                          const EdgeInsets
-                                                              .symmetric(
-                                                          horizontal: 8,
-                                                          vertical: 3),
-                                                      decoration:
-                                                          BoxDecoration(
-                                                        color: AppColors.dark
-                                                            .withValues(
-                                                                alpha: 0.06),
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(8),
-                                                        border: Border.all(
-                                                          color: AppColors
-                                                              .dark
-                                                              .withValues(
-                                                                  alpha:
-                                                                      0.15),
-                                                        ),
-                                                      ),
-                                                      child: const Text(
-                                                        'ECONOMY',
-                                                        style: TextStyle(
-                                                          fontSize: 9,
-                                                          letterSpacing: 1,
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          color: AppColors
-                                                              .greyAccent,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                                const SizedBox(height: 6),
-                                                Row(
-                                                  children: [
-                                                    Text(
-                                                      origenCiudad.toString(),
-                                                      style: const TextStyle(
-                                                          color: Colors.grey,
-                                                          fontSize: 12),
-                                                    ),
-                                                    const SizedBox(width: 8),
-                                                    const Expanded(
+                                                    // Conexión
+                                                    const SizedBox(
+                                                      width: 80,
                                                       child: _RutaPunteada(),
                                                     ),
-                                                    const SizedBox(width: 8),
-                                                    Text(
-                                                      destinoCiudad.toString(),
-                                                      style: const TextStyle(
-                                                          color: Colors.grey,
-                                                          fontSize: 12),
+                                                    // Destino
+                                                    Expanded(
+                                                      child: Column(
+                                                        crossAxisAlignment: CrossAxisAlignment.end,
+                                                        children: [
+                                                          Text(
+                                                            destinoIata ?? '—',
+                                                            style: const TextStyle(
+                                                                fontSize: 22,
+                                                                fontWeight: FontWeight.bold,
+                                                                color: AppColors.dark),
+                                                          ),
+                                                          Text(
+                                                            destinoCiudad,
+                                                            style: const TextStyle(
+                                                                fontSize: 12,
+                                                                color: Colors.grey),
+                                                          ),
+                                                        ],
+                                                      ),
                                                     ),
                                                   ],
                                                 ),
-                                                const SizedBox(height: 12),
+                                                const Divider(height: 24, thickness: 1),
                                                 Row(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.end,
+                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                   children: [
-                                                    Column(
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
+                                                    Row(
                                                       children: [
-                                                        const Text(
-                                                            'Por trayecto desde',
-                                                            style: TextStyle(
-                                                                fontSize: 11,
-                                                                color: Colors
-                                                                    .grey)),
-                                                        Text('\$${v['precio']}',
-                                                            style: const TextStyle(
-                                                                fontSize: 26,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold,
-                                                                color: _purple)),
+                                                        const Icon(Icons.calendar_today, size: 14, color: Colors.grey),
+                                                        const SizedBox(width: 6),
+                                                        Text(
+                                                          (v['fecha_salida'] ?? '').toString().split('T').first,
+                                                          style: const TextStyle(fontSize: 12, color: Colors.grey),
+                                                        ),
                                                       ],
                                                     ),
-                                                    const Spacer(),
-                                                    Text(
-                                                      (v['fecha_salida'] ?? '')
-                                                          .toString()
-                                                          .split('T')
-                                                          .first,
-                                                      style: const TextStyle(
-                                                          fontSize: 12,
-                                                          color: Colors.grey),
+                                                    Container(
+                                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                                      decoration: BoxDecoration(
+                                                        color: AppColors.dark.withValues(alpha: 0.05),
+                                                        borderRadius: BorderRadius.circular(6),
+                                                      ),
+                                                      child: const Text(
+                                                        'CLASE ECONÓMICA',
+                                                        style: TextStyle(
+                                                            fontSize: 9,
+                                                            fontWeight: FontWeight.bold,
+                                                            color: AppColors.greyAccent),
+                                                      ),
                                                     ),
                                                   ],
                                                 ),
