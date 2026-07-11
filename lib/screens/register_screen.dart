@@ -274,32 +274,43 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       onPressed: _loading ? null : _register,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
+                        foregroundColor: AppColors.dark,
+                        elevation: 2,
+                        shadowColor: Colors.black.withValues(alpha: 0.3),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),
                       ),
                       child: _loading
-                          ? const CircularProgressIndicator(
-                              color: AppColors.primary,
+                          ? const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                color: AppColors.primary,
+                                strokeWidth: 2.5,
+                              ),
                             )
                           : const Text(
                               'Registrarme',
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
-                                color: AppColors.dark,
+                                letterSpacing: 0.5,
                               ),
                             ),
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
                   TextButton(
                     onPressed: () =>
                         Navigator.pushReplacementNamed(context, '/login'),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
                     child: RichText(
                       text: const TextSpan(
                         text: '¿Ya tienes cuenta? ',
-                        style: TextStyle(color: Colors.white70),
+                        style: TextStyle(color: Colors.white70, fontSize: 14),
                         children: [
                           TextSpan(
                             text: 'Inicia sesión',
