@@ -145,89 +145,107 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                       ),
                     ),
                   ),
-
                   // Buscador estilo Avianca
                   SliverToBoxAdapter(
                     child: Transform.translate(
-                      offset: const Offset(0, -30),
+                      offset: const Offset(0, -35),
                       child: Container(
                         margin: const EdgeInsets.symmetric(horizontal: 16),
-                        padding: const EdgeInsets.all(20),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 20,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(24),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.16),
-                              blurRadius: 28,
-                              spreadRadius: 0,
-                              offset: const Offset(0, 12),
+                              color: Colors.black.withValues(alpha: 0.12),
+                              blurRadius: 24,
+                              offset: const Offset(0, 10),
                             ),
                           ],
                         ),
                         child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
+                            const Row(
                               children: [
-                                const Icon(Icons.flight_takeoff,
-                                    color: _purple, size: 20),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      const Text('Desde',
-                                          style: TextStyle(
-                                              fontSize: 11,
-                                              color: Colors.grey)),
-                                      Text(
-                                        _vuelos.isNotEmpty
-                                            ? (_vuelos[0]['origen_detalle']
-                                                    ?['ciudad'] ??
-                                                'Quito')
-                                            : 'Quito',
-                                        style: const TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                    ],
+                                Icon(Icons.flight_takeoff, color: _purple, size: 18),
+                                SizedBox(width: 8),
+                                Text(
+                                  'Planifica tu viaje',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.dark,
+                                    letterSpacing: 0.5,
                                   ),
                                 ),
                               ],
                             ),
-                            Container(
-                              margin: const EdgeInsets.symmetric(vertical: 12),
-                              height: 2,
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [
-                                    AppColors.primary.withValues(alpha: 0.5),
-                                    AppColors.dark.withValues(alpha: 0.15),
-                                  ],
-                                ),
-                                borderRadius: BorderRadius.circular(1),
-                              ),
-                            ),
+                            const SizedBox(height: 16),
                             Row(
                               children: [
-                                const Icon(Icons.flight_land,
-                                    color: _purple, size: 20),
-                                const SizedBox(width: 12),
+                                // Origen
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      const Text('Explora destinos',
-                                          style: TextStyle(
-                                              fontSize: 11,
-                                              color: Colors.grey)),
+                                      const Text(
+                                        'Desde',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: Colors.grey,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
                                       Text(
-                                        '${_vuelos.length} vuelos disponibles',
+                                        _vuelos.isNotEmpty
+                                            ? (_vuelos[0]['origen_detalle']?['ciudad'] ?? 'Quito')
+                                            : 'Quito',
                                         style: const TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold),
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.dark,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                // Icono central
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.background,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.swap_horiz,
+                                    color: _purple,
+                                    size: 20,
+                                  ),
+                                ),
+                                // Destino
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      const Text(
+                                        'Hacia',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: Colors.grey,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        '${_vuelos.length} destinos',
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.dark,
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -239,26 +257,29 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                               width: double.infinity,
                               height: 52,
                               child: ElevatedButton(
-                                onPressed: () =>
-                                    Navigator.pushNamed(context, '/login'),
+                                onPressed: () => Navigator.pushNamed(context, '/login'),
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.black,
+                                  backgroundColor: AppColors.primary,
+                                  foregroundColor: Colors.white,
+                                  elevation: 2,
                                   shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(30)),
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
                                 ),
-                                child: const Text('Reservar ahora',
-                                    style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold)),
+                                child: const Text(
+                                  'Reservar ahora',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 1,
+                                  ),
+                                ),
                               ),
                             ),
                           ],
                         ),
-                      ),
-                    ),
                   ),
-
+                  
                   // Promociones
                   if (_promociones.isNotEmpty)
                     SliverToBoxAdapter(
