@@ -67,45 +67,80 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                 slivers: [
                   // AppBar con gradiente
                   SliverAppBar(
-                    expandedHeight: 200,
+                    expandedHeight: 220,
                     pinned: true,
                     backgroundColor: _purple,
                     actions: [
-                      TextButton.icon(
-                        onPressed: () => Navigator.pushNamed(context, '/login'),
-                        icon: const Icon(Icons.person_outline,
-                            color: Colors.white, size: 20),
-                        label: const Text('Ingresar',
-                            style: TextStyle(color: Colors.white)),
+                      Container(
+                        margin: const EdgeInsets.only(right: 12, top: 8, bottom: 8),
+                        child: ElevatedButton.icon(
+                          onPressed: () => Navigator.pushNamed(context, '/login'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white.withValues(alpha: 0.2),
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                          ),
+                          icon: const Icon(Icons.person_outline, size: 18),
+                          label: const Text(
+                            'Ingresar',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ),
                       ),
                     ],
                     flexibleSpace: FlexibleSpaceBar(
-                      title: const Text('avianco',
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold, letterSpacing: 2)),
+                      titlePadding: const EdgeInsets.only(left: 16, bottom: 14),
+                      title: const Text(
+                        'avianco',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 3,
+                          color: Colors.white,
+                        ),
+                      ),
                       background: Container(
                         decoration: const BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [_purple, _darkPurple],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
+                          gradient: AppColors.mainGradient,
                         ),
-                        child: const Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.airplanemode_active,
-                                  size: 48, color: Colors.white24),
-                              SizedBox(height: 8),
-                              Padding(
-                                padding: EdgeInsets.only(bottom: 40),
-                                child: Text('Conectando destinos',
-                                    style: TextStyle(
-                                        color: Colors.white70, fontSize: 13)),
+                        child: const Stack(
+                          children: [
+                            Positioned(
+                              right: -40,
+                              top: -40,
+                              child: Icon(
+                                Icons.airplanemode_active,
+                                size: 180,
+                                color: Colors.white10,
                               ),
-                            ],
-                          ),
+                            ),
+                            Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.airplanemode_active,
+                                    size: 48,
+                                    color: Colors.white24,
+                                  ),
+                                  SizedBox(height: 8),
+                                  Padding(
+                                    padding: EdgeInsets.only(bottom: 24),
+                                    child: Text(
+                                      'Conectando destinos',
+                                      style: TextStyle(
+                                        color: Colors.white70,
+                                        fontSize: 13,
+                                        letterSpacing: 1.5,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
