@@ -402,18 +402,20 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
                               children: [
                                 Container(
                                   padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
+                                    horizontal: 10,
                                     vertical: 4,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: _estadoColor(r['estado']),
-                                    borderRadius: BorderRadius.circular(8),
+                                    color: _estadoColor(r['estado']).withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(30),
                                   ),
                                   child: Text(
-                                    r['estado'],
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 11,
+                                    r['estado'].toString().toUpperCase(),
+                                    style: TextStyle(
+                                      color: _estadoColor(r['estado']),
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 1.0,
                                     ),
                                   ),
                                 ),
