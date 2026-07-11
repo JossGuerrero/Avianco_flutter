@@ -293,7 +293,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                                     fontSize: 20, fontWeight: FontWeight.bold)),
                             const SizedBox(height: 12),
                             SizedBox(
-                              height: 120,
+                              height: 140,
                               child: ListView.separated(
                                 scrollDirection: Axis.horizontal,
                                 itemCount: _promociones.length,
@@ -301,57 +301,83 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                                     const SizedBox(width: 12),
                                 itemBuilder: (ctx, i) {
                                   final p = _promociones[i];
+                                  final pct = double.tryParse(p['descuento']?.toString() ?? '0')?.toInt() ?? 0;
                                   return Container(
-                                    width: 260,
+                                    width: 280,
                                     padding: const EdgeInsets.all(16),
                                     decoration: BoxDecoration(
-                                      gradient: const LinearGradient(
-                                        colors: [
-                                          AppColors.deepRed,
-                                          AppColors.dark
-                                        ],
-                                      ),
-                                      borderRadius: BorderRadius.circular(16),
+                                      gradient: AppColors.promoGradient,
+                                      borderRadius: BorderRadius.circular(18),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: AppColors.primary.withValues(alpha: 0.25),
+                                          blurRadius: 10,
+                                          offset: const Offset(0, 4),
+                                        ),
+                                      ],
                                     ),
                                     child: Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 10, vertical: 4),
-                                          decoration: BoxDecoration(
-                                            color: Colors.white,
-                                            borderRadius:
-                                                BorderRadius.circular(20),
-                                          ),
-                                          child: Text(
-                                            '${double.tryParse(p['descuento']?.toString() ?? '0')?.toInt() ?? 0}% OFF',
-                                            style: const TextStyle(
-                                                color: AppColors.primary,
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 13),
-                                          ),
-                                        ),
-                                        const Spacer(),
-                                        Text(p['codigo'] ?? '',
-                                            style: const TextStyle(
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text(
+                                              p['codigo'] ?? '',
+                                              style: const TextStyle(
                                                 color: Colors.white,
                                                 fontWeight: FontWeight.bold,
-                                                fontSize: 18)),
+                                                fontSize: 18,
+                                                letterSpacing: 1.2,
+                                              ),
+                                            ),
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(
+                                                  horizontal: 10, vertical: 4),
+                                              decoration: BoxDecoration(
+                                                color: Colors.white,
+                                                borderRadius: BorderRadius.circular(20),
+                                              ),
+                                              child: Text(
+                                                '$pct% OFF',
+                                                style: const TextStyle(
+                                                  color: AppColors.primary,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const Spacer(),
                                         Text(
                                           p['descripcion'] ?? '',
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                           style: const TextStyle(
-                                              color: Colors.white70,
-                                              fontSize: 12),
+                                            color: Colors.white90,
+                                            fontSize: 13,
+                                          ),
                                         ),
-                                        const SizedBox(height: 4),
-                                        Text('Válido hasta ${p['fecha_fin'] ?? ''}',
-                                            style: const TextStyle(
+                                        const SizedBox(height: 6),
+                                        Row(
+                                          children: [
+                                            const Icon(
+                                              Icons.access_time,
+                                              color: Colors.white60,
+                                              size: 12,
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              'Válido hasta ${p['fecha_fin'] ?? ''}',
+                                              style: const TextStyle(
                                                 color: Colors.white60,
-                                                fontSize: 11)),
+                                                fontSize: 11,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ],
                                     ),
                                   );
