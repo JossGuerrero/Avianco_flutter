@@ -500,18 +500,18 @@ class _SeatSelectorScreenState extends State<SeatSelectorScreen> {
     if (!seat.disponible) {
       fondo = AppColors.greyDark;
       borde = AppColors.greyDark;
-      icono = const Icon(Icons.person, size: 14, color: Colors.white54);
+      icono = const Icon(Icons.person, size: 14, color: Colors.white38);
     } else if (selected) {
       fondo = AppColors.primary;
       borde = AppColors.primary;
-      icono = const Icon(Icons.check, size: 16, color: Colors.white);
+      icono = const Icon(Icons.check, size: 14, color: Colors.white);
     } else {
       fondo = Colors.white;
       borde = seat.business ? AppColors.darkRed : Colors.grey.shade400;
     }
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 2.5),
       child: GestureDetector(
         onTap: seat.disponible
             ? () => setState(
@@ -520,17 +520,29 @@ class _SeatSelectorScreenState extends State<SeatSelectorScreen> {
             : null,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
-          width: 30,
-          height: 32,
+          width: 32,
+          height: 34,
           decoration: BoxDecoration(
             color: fondo,
-            borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(9),
-              bottom: Radius.circular(5),
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(8),
+              topRight: Radius.circular(8),
+              bottomLeft: Radius.circular(5),
+              bottomRight: Radius.circular(5),
             ),
+            boxShadow: selected
+                ? [
+                    BoxShadow(
+                      color: AppColors.primary.withValues(alpha: 0.35),
+                      blurRadius: 6,
+                      spreadRadius: 1,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
             border: Border.all(
               color: borde,
-              width: seat.business && seat.disponible && !selected ? 2 : 1,
+              width: seat.business && seat.disponible && !selected ? 2.0 : 1.2,
             ),
           ),
           child: Center(
@@ -538,7 +550,7 @@ class _SeatSelectorScreenState extends State<SeatSelectorScreen> {
                 Text(
                   seat.codigo,
                   style: TextStyle(
-                    fontSize: 7,
+                    fontSize: 7.5,
                     fontWeight: FontWeight.bold,
                     color: seat.business
                         ? AppColors.darkRed
