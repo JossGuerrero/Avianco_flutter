@@ -22,6 +22,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
   Future<void> _load() async {
     setState(() => _loading = true);
     final data = await api.ApiService.getServicios();
+    if (!mounted) return;
     setState(() {
       _items = data;
       _loading = false;
