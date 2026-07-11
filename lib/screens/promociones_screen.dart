@@ -256,46 +256,130 @@ class _PromotionsScreenState extends State<PromotionsScreen> {
                 itemBuilder: (context, index) {
                   final item = _items[index];
                   final activa = item['activa'] == true;
+                  final pct = item['descuento']?.toString() ?? '0';
+
                   return Card(
-                    child: ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: activa ? _blue : Colors.grey,
-                        child: const Icon(
-                          Icons.local_offer,
-                          color: Colors.white,
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Cabecera con gradiente
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          decoration: BoxDecoration(
+                            gradient: activa
+                                ? AppColors.promoGradient
+                                : const LinearGradient(
+                                    colors: [Color(0xFF757575), Color(0xFF424242)],
+                                  ),
+                            borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(16),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                item['codigo'] ?? '—',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  letterSpacing: 1.2,
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Text(
+                                  '$pct% OFF',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      title: Text(
-                        item['codigo'] ?? 'Promoción',
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      subtitle: Text(
-                        '${item['descripcion'] ?? ''}\n${item['descuento'] ?? 0}% · Vence: ${item['fecha_fin'] ?? '—'}',
-                      ),
-                      isThreeLine: true,
-                      trailing: _isStaff
-                          ? Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                IconButton(
-                                  icon: const Icon(
-                                    Icons.edit,
-                                    size: 20,
-                                    color: _blue,
-                                  ),
-                                  onPressed: () => _showForm(promocion: item),
+                        // Cuerpo de la card
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 10, 8, 10),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      item['descripcion'] ?? '—',
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        color: AppColors.dark,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Row(
+                                      children: [
+                                        const Icon(
+                                          Icons.calendar_today,
+                                          size: 12,
+                                          color: Colors.grey,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          'Vence: ${item['fecha_fin'] ?? '—'}',
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
                                 ),
-                                IconButton(
-                                  icon: const Icon(
-                                    Icons.delete,
-                                    size: 20,
-                                    color: Colors.red,
-                                  ),
-                                  onPressed: () => _confirmDelete(item),
+                              ),
+                              if (_isStaff)
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.edit,
+                                        size: 20,
+                                        color: _blue,
+                                      ),
+                                      onPressed: () =>
+                                          _showForm(promocion: item),
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.delete,
+                                        size: 20,
+                                        color: Colors.red,
+                                      ),
+                                      onPressed: () => _confirmDelete(item),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            )
-                          : null,
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   );
                 },
