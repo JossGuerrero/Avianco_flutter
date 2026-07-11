@@ -194,13 +194,15 @@ class _SeatSelectorScreenState extends State<SeatSelectorScreen> {
                               color: Colors.white,
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
+                              letterSpacing: 1.0,
                             ),
                           ),
                           const Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 12),
+                            padding: EdgeInsets.symmetric(horizontal: 14),
                             child: Icon(
                               Icons.flight_takeoff,
                               color: Colors.white70,
+                              size: 20,
                             ),
                           ),
                           Text(
@@ -209,6 +211,7 @@ class _SeatSelectorScreenState extends State<SeatSelectorScreen> {
                               color: Colors.white,
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
+                              letterSpacing: 1.0,
                             ),
                           ),
                         ],
@@ -219,28 +222,38 @@ class _SeatSelectorScreenState extends State<SeatSelectorScreen> {
                         style: const TextStyle(
                           color: Colors.white70,
                           fontSize: 13,
+                          letterSpacing: 0.5,
                         ),
                       ),
-                      const SizedBox(height: 14),
-                      const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          _LegendItem(
-                            color: Colors.white,
-                            border: Colors.grey,
-                            label: 'Disponible',
-                          ),
-                          SizedBox(width: 14),
-                          _LegendItem(
-                            color: AppColors.greyDark,
-                            label: 'Ocupado',
-                          ),
-                          SizedBox(width: 14),
-                          _LegendItem(
-                            color: AppColors.primary,
-                            label: 'Tu asiento',
-                          ),
-                        ],
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            _LegendItem(
+                              color: Colors.white,
+                              border: Colors.grey,
+                              label: 'Disponible',
+                            ),
+                            SizedBox(width: 14),
+                            _LegendItem(
+                              color: AppColors.greyDark,
+                              label: 'Ocupado',
+                            ),
+                            SizedBox(width: 14),
+                            _LegendItem(
+                              color: AppColors.primary,
+                              label: 'Tu asiento',
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
