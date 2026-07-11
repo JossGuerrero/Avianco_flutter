@@ -348,6 +348,29 @@ class _PromotionsScreenState extends State<PromotionsScreen> {
                                             color: Colors.grey,
                                           ),
                                         ),
+                                        const SizedBox(width: 10),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 2,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: activa
+                                                ? AppColors.primary.withValues(alpha: 0.1)
+                                                : Colors.grey.withValues(alpha: 0.15),
+                                            borderRadius: BorderRadius.circular(20),
+                                          ),
+                                          child: Text(
+                                            activa ? 'Activa' : 'Inactiva',
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.bold,
+                                              color: activa
+                                                  ? AppColors.primary
+                                                  : Colors.grey,
+                                            ),
+                                          ),
+                                        ),
                                       ],
                                     ),
                                   ],
