@@ -271,25 +271,68 @@ class _SeatSelectorScreenState extends State<SeatSelectorScreen> {
                           bottom: Radius.circular(40),
                         ),
                         border: Border.all(
-                          color: AppColors.dark.withValues(alpha: 0.15),
-                          width: 2,
+                          color: AppColors.dark.withValues(alpha: 0.12),
+                          width: 1.5,
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.08),
-                            blurRadius: 16,
-                            offset: const Offset(0, 6),
+                            color: Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 20,
+                            offset: const Offset(0, 8),
                           ),
                         ],
                       ),
                       child: Column(
                         children: [
-                          const Icon(
-                            Icons.airplanemode_active,
-                            color: AppColors.primary,
-                            size: 30,
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                width: 8,
+                                height: 4,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[300],
+                                  borderRadius: BorderRadius.circular(2),
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Container(
+                                width: 14,
+                                height: 6,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[400],
+                                  borderRadius: BorderRadius.circular(2),
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Container(
+                                width: 8,
+                                height: 4,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[300],
+                                  borderRadius: BorderRadius.circular(2),
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 6),
+                          const SizedBox(height: 8),
+                          const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.lock_outline, size: 10, color: Colors.grey),
+                              SizedBox(width: 4),
+                              Text(
+                                'CABINA',
+                                style: TextStyle(
+                                  fontSize: 9,
+                                  letterSpacing: 1.5,
+                                  color: Colors.grey,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 14),
                           const Text(
                             'BUSINESS',
                             style: TextStyle(
