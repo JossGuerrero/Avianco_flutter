@@ -259,24 +259,44 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
           )
         else
           Container(
-            margin: const EdgeInsets.all(12),
-            padding: const EdgeInsets.all(14),
+            margin: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: AppColors.primary.withValues(alpha: 0.25),
+              color: Colors.white,
+              borderRadius: const BorderRadius.horizontal(
+                right: Radius.circular(16),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+              border: const Border(
+                left: BorderSide(
+                  color: AppColors.primary,
+                  width: 4,
+                ),
               ),
             ),
-            child: const Row(
+            child: Row(
               children: [
-                Icon(Icons.info_outline, color: AppColors.primary, size: 20),
-                SizedBox(width: 10),
+                const Icon(
+                  Icons.info_outline,
+                  color: AppColors.primary,
+                  size: 22,
+                ),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     'Para reservar un boleto, ve a Vuelos y toca "Reservar" '
-                    'en el vuelo que quieras.',
-                    style: TextStyle(fontSize: 13, color: AppColors.dark),
+                    'en el vuelo que desees.',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.grey[800],
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ),
               ],
