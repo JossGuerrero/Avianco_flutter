@@ -31,9 +31,30 @@ class _ServicesScreenState extends State<ServicesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_loading) return const Center(child: CircularProgressIndicator());
-    if (_items.isEmpty)
-      return const Center(child: Text('No hay servicios disponibles'));
+    if (_loading) {
+      return const Center(
+        child: CircularProgressIndicator(color: AppColors.primary),
+      );
+    }
+    if (_items.isEmpty) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.room_service_outlined, size: 64, color: Colors.grey),
+            SizedBox(height: 12),
+            Text(
+              'No hay servicios disponibles',
+              style: TextStyle(
+                color: Colors.grey,
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
     return ListView.separated(
       padding: const EdgeInsets.all(16),
