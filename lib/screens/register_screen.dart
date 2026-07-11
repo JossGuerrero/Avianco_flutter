@@ -79,14 +79,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
   InputDecoration _decoration(String label, IconData icon) {
     return InputDecoration(
       labelText: label,
-      labelStyle: const TextStyle(color: Colors.white70),
-      prefixIcon: Icon(icon, color: Colors.white54, size: 20),
+      labelStyle: const TextStyle(color: Colors.white70, fontSize: 14),
+      prefixIcon: Icon(icon, color: Colors.white70, size: 20),
+      filled: true,
+      fillColor: Colors.white.withValues(alpha: 0.08),
       enabledBorder: OutlineInputBorder(
-        borderSide: const BorderSide(color: Colors.white38),
+        borderSide: const BorderSide(color: Colors.white24),
         borderRadius: BorderRadius.circular(16),
       ),
       focusedBorder: OutlineInputBorder(
-        borderSide: const BorderSide(color: Colors.white),
+        borderSide: const BorderSide(color: Colors.white, width: 1.5),
         borderRadius: BorderRadius.circular(16),
       ),
       errorStyle: const TextStyle(color: Color(0xFFFFCDD2)),
@@ -95,7 +97,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         borderRadius: BorderRadius.circular(16),
       ),
       focusedErrorBorder: OutlineInputBorder(
-        borderSide: const BorderSide(color: Color(0xFFFFCDD2)),
+        borderSide: const BorderSide(color: Color(0xFFFFCDD2), width: 1.5),
         borderRadius: BorderRadius.circular(16),
       ),
     );
