@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:avianco/services/api_service.dart';
 import 'package:avianco/services/auth_service.dart';
+import 'package:avianco/core/app_colors.dart';
 
 class SeatsScreen extends StatefulWidget {
   const SeatsScreen({super.key});
@@ -13,8 +14,6 @@ class _SeatsScreenState extends State<SeatsScreen> {
   List<dynamic> _items = [];
   bool _loading = true;
   bool _isStaff = false;
-
-  static const _purple = Color(0xFF7B2D8B);
 
   @override
   void initState() {
@@ -44,56 +43,30 @@ class _SeatsScreenState extends State<SeatsScreen> {
     await showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Nuevo Asiento'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: const Text('Nuevo Asiento', style: TextStyle(fontWeight: FontWeight.bold)),
         content: Form(
           key: formKey,
           child: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                TextFormField(
-                  controller: codigoCtrl,
-                  decoration: const InputDecoration(
-                    labelText: 'Código (ej: 12A)',
-                  ),
-                  validator: (v) => v == null || v.isEmpty ? 'Requerido' : null,
-                ),
-                TextFormField(
-                  controller: filaCtrl,
-                  decoration: const InputDecoration(labelText: 'Fila'),
-                  keyboardType: TextInputType.number,
-                  validator: (v) => v == null || v.isEmpty ? 'Requerido' : null,
-                ),
-                TextFormField(
-                  controller: columnaCtrl,
-                  decoration: const InputDecoration(
-                    labelText: 'Columna (ej: A)',
-                  ),
-                  validator: (v) => v == null || v.isEmpty ? 'Requerido' : null,
-                ),
-                TextFormField(
-                  controller: vueloCtrl,
-                  decoration: const InputDecoration(labelText: 'ID Vuelo'),
-                  keyboardType: TextInputType.number,
-                  validator: (v) => v == null || v.isEmpty ? 'Requerido' : null,
-                ),
-                TextFormField(
-                  controller: disponibleCtrl,
-                  decoration: const InputDecoration(
-                    labelText: 'Disponible (true/false)',
-                  ),
-                ),
+                _buildFormField(codigoCtrl, 'Código (ej: 12A)', Icons.qr_code),
+                _buildFormField(filaCtrl, 'Fila', Icons.format_list_numbered, type: TextInputType.number),
+                _buildFormField(columnaCtrl, 'Columna (ej: A)', Icons.view_column),
+                _buildFormField(vueloCtrl, 'ID Vuelo', Icons.flight, type: TextInputType.number),
+                _buildFormField(disponibleCtrl, 'Disponible (true/false)', Icons.event_seat),
               ],
             ),
           ),
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancelar', style: TextStyle(color: Colors.grey))),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: _purple),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
             onPressed: () async {
               if (!formKey.currentState!.validate()) return;
               final data = {
@@ -109,16 +82,7 @@ class _SeatsScreenState extends State<SeatsScreen> {
               if (ok) {
                 await _load();
                 if (!mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Asiento creado')),
-                );
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Error al crear asiento'),
-                    backgroundColor: Colors.red,
-                  ),
-                );
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Asiento creado exitosamente')));
               }
             },
             child: const Text('Crear', style: TextStyle(color: Colors.white)),
@@ -128,51 +92,118 @@ class _SeatsScreenState extends State<SeatsScreen> {
     );
   }
 
+  Widget _buildFormField(TextEditingController ctrl, String label, IconData icon, {TextInputType type = TextInputType.text}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: TextFormField(
+        controller: ctrl,
+        keyboardType: type,
+        decoration: InputDecoration(
+          labelText: label,
+          prefixIcon: Icon(icon, color: AppColors.primary, size: 20),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+          filled: true,
+          fillColor: Colors.grey[50],
+        ),
+        validator: (v) => v == null || v.isEmpty ? 'Requerido' : null,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Asientos'),
-        backgroundColor: _purple,
+      backgroundColor: AppColors.background,
+      body: CustomScrollView(
+        slivers: [
+          _buildAppBar(),
+          _loading
+              ? const SliverFillRemaining(child: Center(child: CircularProgressIndicator(color: AppColors.primary)))
+              : _items.isEmpty
+                  ? const SliverFillRemaining(child: Center(child: Text('No hay asientos registrados')))
+                  : SliverPadding(
+                      padding: const EdgeInsets.all(20),
+                      sliver: SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                          (ctx, i) => _buildSeatCard(_items[i]),
+                          childCount: _items.length,
+                        ),
+                      ),
+                    ),
+        ],
       ),
       floatingActionButton: _isStaff
           ? FloatingActionButton(
-              backgroundColor: _purple,
+              backgroundColor: AppColors.primary,
               onPressed: _showForm,
-              child: const Icon(Icons.add),
+              child: const Icon(Icons.add, color: Colors.white),
             )
           : null,
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : _items.isEmpty
-          ? const Center(child: Text('No hay asientos registrados'))
-          : RefreshIndicator(
-              onRefresh: _load,
-              child: ListView.separated(
-                padding: const EdgeInsets.all(16),
-                itemCount: _items.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 12),
-                itemBuilder: (context, index) {
-                  final item = _items[index];
-                  final codigo = item['codigo'] ?? '';
-                  final fila = item['fila']?.toString() ?? '';
-                  final columna = item['columna'] ?? '';
-                  final disponible = item['disponible']?.toString() ?? 'false';
-                  return Card(
-                    child: ListTile(
-                      leading: const CircleAvatar(
-                        backgroundColor: _purple,
-                        child: Icon(Icons.event_seat, color: Colors.white),
-                      ),
-                      title: Text('Asiento $codigo'),
-                      subtitle: Text(
-                        'Fila $fila · Columna $columna · Disponible: $disponible',
-                      ),
-                    ),
-                  );
-                },
-              ),
+    );
+  }
+
+  Widget _buildAppBar() {
+    return SliverAppBar(
+      expandedHeight: 120,
+      floating: true,
+      pinned: true,
+      elevation: 0,
+      backgroundColor: AppColors.primary,
+      flexibleSpace: FlexibleSpaceBar(
+        centerTitle: true,
+        title: const Text('Gestión de Asientos', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+        background: Container(
+          decoration: const BoxDecoration(gradient: AppColors.bannerGradient),
+          child: Opacity(
+            opacity: 0.1,
+            child: Icon(Icons.event_seat, size: 150, color: Colors.white.withValues(alpha: 0.5)),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSeatCard(item) {
+    final bool disponible = item['disponible'] == true;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 12, offset: const Offset(0, 4))],
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        leading: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: (disponible ? AppColors.success : AppColors.primary).withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Icon(
+            Icons.event_seat,
+            color: disponible ? AppColors.success : AppColors.primary,
+            size: 24,
+          ),
+        ),
+        title: Text('Asiento ${item['codigo']}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.dark)),
+        subtitle: Text('Fila ${item['fila']} · Columna ${item['columna']}', style: const TextStyle(color: AppColors.greyAccent, fontSize: 13)),
+        trailing: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            color: (disponible ? AppColors.success : AppColors.primary).withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            disponible ? 'Disponible' : 'Ocupado',
+            style: TextStyle(
+              color: disponible ? AppColors.success : AppColors.primary,
+              fontWeight: FontWeight.bold,
+              fontSize: 11,
             ),
+          ),
+        ),
+      ),
     );
   }
 }
