@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../config/api.dart';
+import 'package:avianco/core/api.dart';
 import 'auth_service.dart';
 
 class ApiService {
