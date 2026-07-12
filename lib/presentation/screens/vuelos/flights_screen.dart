@@ -23,118 +23,95 @@ class _FlightsScreenState extends State<FlightsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final vuelosData = Provider.of<VuelosProvider>(context);
-    final vuelos = vuelosData.items;
+    final provider = Provider.of<VuelosProvider>(context);
+    final vuelos = provider.items;
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('Vuelos Disponibles', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        backgroundColor: AppColors.primary,
-        elevation: 0,
-        centerTitle: true,
-      ),
-      body: Column(
+    return Container(
+      color: AppColors.background,
+      child: Column(
         children: [
-          _buildSearchBar(vuelosData),
+          _buildSearchBox(provider),
           Expanded(
-            child: vuelosData.isLoading
+            child: provider.isLoading
                 ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
-                : RefreshIndicator(
-                    onRefresh: () => vuelosData.fetchVuelos(),
-                    child: ListView.builder(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: vuelos.length,
-                      itemBuilder: (ctx, i) {
-                        final v = vuelos[i];
-                        return _buildFlightTicket(v);
-                      },
-                    ),
-                  ),
+                : vuelos.isEmpty
+                    ? const Center(child: Text('No hay vuelos disponibles'))
+                    : ListView.builder(
+                        padding: const EdgeInsets.fromLTRB(24, 0, 24, 140),
+                        physics: const BouncingScrollPhysics(),
+                        itemCount: vuelos.length,
+                        itemBuilder: (ctx, i) => _buildFlightCard(vuelos[i]),
+                      ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildSearchBar(VuelosProvider provider) {
+  Widget _buildSearchBox(VuelosProvider provider) {
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: const BoxDecoration(
-        color: AppColors.primary,
-        borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
-      ),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: TextField(
-          controller: _searchCtrl,
-          onChanged: (val) => provider.fetchVuelos(search: val),
-          decoration: const InputDecoration(
-            hintText: 'Buscar por número o destino...',
-            border: InputBorder.none,
-            icon: Icon(Icons.search, color: AppColors.primary),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFlightTicket(v) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.all(24),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4)),
-        ],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 15, offset: const Offset(0, 5))],
+      ),
+      child: TextField(
+        controller: _searchCtrl,
+        onChanged: (v) => provider.fetchVuelos(search: v),
+        decoration: const InputDecoration(
+          hintText: 'Buscar número de vuelo...',
+          border: InputBorder.none,
+          icon: Icon(Icons.search, color: AppColors.primary),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFlightCard(v) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 12)],
       ),
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(24),
             child: Column(
               children: [
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _buildAirportNode(v.origen, 'Origen'),
-                    const _RutaPunteada(),
-                    _buildAirportNode(v.destino, 'Destino', isRight: true),
+                    Expanded(child: _airportNode(v.origen, 'ORIGEN')),
+                    const Padding(padding: EdgeInsets.symmetric(horizontal: 10), child: Icon(Icons.flight_takeoff, color: AppColors.primary, size: 20)),
+                    Expanded(child: _airportNode(v.destino, 'DESTINO', isRight: true)),
                   ],
                 ),
                 const SizedBox(height: 20),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('FECHA Y HORA', style: TextStyle(color: Colors.grey, fontSize: 10, fontWeight: FontWeight.bold)),
-                        Text(v.fechaSalida.toString().substring(0, 16), style: const TextStyle(fontWeight: FontWeight.bold)),
-                      ],
-                    ),
-                    _buildStatusChip(v.estado),
+                    Text('N° ${v.numeroVuelo}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.dark)),
+                    _statusBadge(v.estado),
                   ],
                 ),
               ],
             ),
           ),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.03),
-              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20)),
+              color: AppColors.primary.withValues(alpha: 0.04),
+              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(28)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('N° ${v.numeroVuelo}', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.dark)),
-                Text('\$${v.precioBase}', style: const TextStyle(color: AppColors.success, fontWeight: FontWeight.w900, fontSize: 18)),
+                Text('\$${v.precioBase}', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: AppColors.primary)),
+                const Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.primary),
               ],
             ),
           ),
@@ -143,46 +120,21 @@ class _FlightsScreenState extends State<FlightsScreen> {
     );
   }
 
-  Widget _buildAirportNode(String iata, String label, {bool isRight = false}) {
+  Widget _airportNode(String iata, String label, {bool isRight = false}) {
     return Column(
       crossAxisAlignment: isRight ? CrossAxisAlignment.end : CrossAxisAlignment.start,
       children: [
-        Text(iata, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: AppColors.primary)),
-        Text(label, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+        Text(iata, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: AppColors.dark), overflow: TextOverflow.ellipsis),
+        Text(label, style: const TextStyle(color: Colors.grey, fontSize: 10, fontWeight: FontWeight.bold)),
       ],
     );
   }
 
-  Widget _buildStatusChip(String estado) {
-    Color color;
-    switch (estado.toLowerCase()) {
-      case 'programado': color = AppColors.success; break;
-      case 'cancelado': color = AppColors.primary; break;
-      default: color = Colors.orange;
-    }
+  Widget _statusBadge(String status) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
-      child: Text(estado.toUpperCase(), style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold)),
-    );
-  }
-}
-
-class _RutaPunteada extends StatelessWidget {
-  const _RutaPunteada();
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            Row(children: List.generate(10, (i) => Expanded(child: Container(height: 1, color: i % 2 == 0 ? Colors.grey[300] : Colors.transparent)))),
-            const Icon(Icons.airplanemode_active, color: AppColors.primary, size: 20),
-          ],
-        ),
-      ),
+      decoration: BoxDecoration(color: AppColors.success.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+      child: Text(status.toUpperCase(), style: const TextStyle(color: AppColors.success, fontWeight: FontWeight.bold, fontSize: 10)),
     );
   }
 }

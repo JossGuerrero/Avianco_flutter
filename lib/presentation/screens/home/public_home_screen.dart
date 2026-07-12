@@ -14,18 +14,18 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
   List<dynamic> _vuelos = [];
   List<dynamic> _promociones = [];
   bool _loading = true;
-
-  final Map<String, String> _destImages = {
-    'UIO': 'https://images.unsplash.com/photo-1599059784346-601446e91983?auto=format&fit=crop&q=80&w=400',
-    'GYE': 'https://images.unsplash.com/photo-1589984662646-e7b2e4962f18?auto=format&fit=crop&q=80&w=400',
-    'BOG': 'https://images.unsplash.com/photo-1596464716127-f2a82984de30?auto=format&fit=crop&q=80&w=400',
-    'MAD': 'https://images.unsplash.com/photo-1539037116277-4db20889f2d4?auto=format&fit=crop&q=80&w=400',
-  };
+  bool _isLoggedIn = false;
 
   @override
   void initState() {
     super.initState();
     _load();
+    _checkLoginStatus();
+  }
+
+  Future<void> _checkLoginStatus() async {
+    final status = await AuthService.isLoggedIn();
+    if (mounted) setState(() => _isLoggedIn = status);
   }
 
   Future<void> _load() async {
@@ -36,7 +36,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
       ]);
       if (!mounted) return;
       setState(() {
-        _vuelos = results[0];
+        _vuelos = results[0].isNotEmpty ? results[0] : _getMockVuelos();
         _promociones = results[1];
         _loading = false;
       });
@@ -45,61 +45,132 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
     }
   }
 
+  List<Map<String, dynamic>> _getMockVuelos() {
+    return [
+      {'precio': '125.00', 'origen_detalle': {'codigo_iata': 'UIO', 'ciudad': 'Quito'}, 'destino_detalle': {'codigo_iata': 'BOG', 'ciudad': 'Bogotá'}},
+      {'precio': '210.00', 'origen_detalle': {'codigo_iata': 'GYE', 'ciudad': 'Guayaquil'}, 'destino_detalle': {'codigo_iata': 'MAD', 'ciudad': 'Madrid'}},
+      {'precio': '340.50', 'origen_detalle': {'codigo_iata': 'UIO', 'ciudad': 'Quito'}, 'destino_detalle': {'codigo_iata': 'NYC', 'ciudad': 'New York'}},
+    ];
+  }
+
+  String _getAviationImg(int index) {
+    final imgs = [
+      'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=800&q=80', // Avion
+      'https://images.unsplash.com/photo-1544016768-982d1554f0b9?w=800&q=80', // Terminal
+      'https://images.unsplash.com/photo-1517935706615-2717063c2225?w=800&q=80', // Vista avion
+    ];
+    return imgs[index % imgs.length];
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Colors.white,
       body: _loading
           ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
-          : RefreshIndicator(
-              onRefresh: _load,
-              child: CustomScrollView(
-                physics: const BouncingScrollPhysics(),
-                slivers: [
-                  _buildHeader(),
-                  _buildSearchCard(),
-                  if (_promociones.isNotEmpty) ...[
-                    _buildSectionTitle('Ofertas Exclusivas'),
-                    _buildPromos(),
-                  ],
-                  _buildSectionTitle('Vuelos Destacados'),
-                  _buildVuelos(),
-                  const SliverToBoxAdapter(child: SizedBox(height: 100)),
-                ],
-              ),
+          : CustomScrollView(
+              physics: const BouncingScrollPhysics(),
+              slivers: [
+                _buildAppBar(),
+                _buildModernHeader(),
+                _buildSearchCard(),
+                if (_promociones.isNotEmpty) _buildPromosList(),
+                _buildSectionTitle('Vuelos Destacados'),
+                _buildFlightsList(),
+                const SliverToBoxAdapter(child: SizedBox(height: 100)),
+              ],
             ),
-      floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: AppColors.primary,
-        onPressed: () => Navigator.pushNamed(context, '/login'),
-        icon: const Icon(Icons.person_outline, color: Colors.white),
-        label: const Text('Acceder', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+      floatingActionButton: _isLoggedIn ? _buildFAB() : null,
+    );
+  }
+
+  Widget _buildAppBar() {
+    return SliverAppBar(
+      backgroundColor: AppColors.primary,
+      elevation: 0,
+      pinned: true,
+      centerTitle: false,
+      title: const FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Text('avianco', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, letterSpacing: 2)),
+      ),
+      actions: [
+        if (!_isLoggedIn) ...[
+          TextButton(
+            onPressed: () => Navigator.pushNamed(context, '/login'),
+            child: const Text('ENTRAR', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(right: 12, left: 4),
+            child: ElevatedButton(
+              onPressed: () => Navigator.pushNamed(context, '/register'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white.withValues(alpha: 0.2),
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                minimumSize: const Size(0, 32),
+              ),
+              child: const Text('UNIRSE', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 10)),
+            ),
+          ),
+        ] else ...[
+          IconButton(
+            onPressed: () => Navigator.pushNamed(context, '/profile'),
+            icon: const Icon(Icons.account_circle, color: Colors.white, size: 28),
+          ),
+        ]
+      ],
+    );
+  }
+
+  Widget _buildModernHeader() {
+    return SliverToBoxAdapter(
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(24, 20, 24, 60),
+        decoration: const BoxDecoration(
+          gradient: AppColors.bannerGradient,
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(40)),
+        ),
+        child: const Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Bienvenido\na bordo', style: TextStyle(color: Colors.white, fontSize: 40, fontWeight: FontWeight.w900, height: 1.1)),
+            SizedBox(height: 10),
+            Text('Encuentra tu próximo destino con nosotros', style: TextStyle(color: Colors.white70, fontSize: 16)),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildHeader() {
-    return SliverAppBar(
-      expandedHeight: 200,
-      pinned: true,
-      elevation: 0,
-      backgroundColor: AppColors.primary,
-      flexibleSpace: FlexibleSpaceBar(
-        background: Container(
-          decoration: const BoxDecoration(gradient: AppColors.bannerGradient),
-          child: Stack(
+  Widget _buildSearchCard() {
+    return SliverToBoxAdapter(
+      child: Transform.translate(
+        offset: const Offset(0, -35),
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 24),
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 30, offset: const Offset(0, 10))],
+          ),
+          child: Row(
             children: [
-              Positioned(
-                right: -20,
-                bottom: -20,
-                child: Icon(Icons.airplanemode_active, size: 200, color: Colors.white.withValues(alpha: 0.05)),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.1), shape: BoxShape.circle),
+                child: const Icon(Icons.search, color: AppColors.primary),
               ),
-              const Padding(
-                padding: EdgeInsets.fromLTRB(24, 80, 24, 0),
+              const SizedBox(width: 16),
+              const Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('avianco', style: TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.w900, letterSpacing: 2)),
-                    Text('Conectando el mundo', style: TextStyle(color: Colors.white70, fontSize: 16)),
+                    Text('DESTINO', style: TextStyle(color: Colors.grey, fontSize: 10, fontWeight: FontWeight.bold)),
+                    Text('¿A dónde quieres ir?', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17, color: AppColors.dark)),
                   ],
                 ),
               ),
@@ -110,75 +181,31 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
     );
   }
 
-  Widget _buildSearchCard() {
+  Widget _buildPromosList() {
     return SliverToBoxAdapter(
-      child: Transform.translate(
-        offset: const Offset(0, -30),
-        child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 24),
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 20, offset: const Offset(0, 10))],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('BUSCAR VUELO', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.greyAccent)),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  const Icon(Icons.location_on, color: AppColors.primary),
-                  const SizedBox(width: 12),
-                  Text('Desde Ecuador', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.dark)),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSectionTitle(String title) {
-    return SliverToBoxAdapter(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
-        child: Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.dark)),
-      ),
-    );
-  }
-
-  Widget _buildPromos() {
-    return SliverToBoxAdapter(
-      child: SizedBox(
-        height: 140,
-        child: ListView.separated(
+      child: Container(
+        height: 120,
+        margin: const EdgeInsets.only(bottom: 24),
+        child: ListView.builder(
           scrollDirection: Axis.horizontal,
           padding: const EdgeInsets.symmetric(horizontal: 24),
           itemCount: _promociones.length,
-          separatorBuilder: (_, __) => const SizedBox(width: 16),
           itemBuilder: (ctx, i) {
             final p = _promociones[i];
             return Container(
               width: 260,
+              margin: const EdgeInsets.only(right: 16),
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
                 gradient: AppColors.promoGradient,
+                borderRadius: BorderRadius.circular(24),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(8)),
-                    child: Text('${double.tryParse(p['descuento']?.toString() ?? '0')?.toInt() ?? 0}% OFF', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
-                  ),
-                  const Spacer(),
-                  Text(p['codigo'] ?? '', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20)),
-                  Text('Vence ${p['fecha_fin']}', style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 11)),
+                  Text('${p['descuento']}% OFF', style: const TextStyle(color: AppColors.accent, fontWeight: FontWeight.w900, fontSize: 18)),
+                  Text(p['codigo'] ?? '', style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
                 ],
               ),
             );
@@ -188,60 +215,75 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
     );
   }
 
-  Widget _buildVuelos() {
+  Widget _buildSectionTitle(String t) => SliverToBoxAdapter(
+    child: Padding(
+      padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+      child: Text(t, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.dark)),
+    ),
+  );
+
+  Widget _buildFlightsList() {
     return SliverPadding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       sliver: SliverList(
         delegate: SliverChildBuilderDelegate(
           (ctx, i) {
             final v = _vuelos[i];
-            final iata = v['destino_detalle']?['codigo_iata'] ?? 'UIO';
-            final img = _destImages[iata] ?? 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&q=80&w=400';
-
             return Container(
-              margin: const EdgeInsets.only(bottom: 20),
+              margin: const EdgeInsets.only(bottom: 24),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 15, offset: const Offset(0, 8))],
+                borderRadius: BorderRadius.circular(32),
+                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 20, offset: const Offset(0, 10))],
               ),
               child: Column(
                 children: [
                   ClipRRect(
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-                    child: Image.network(img, height: 150, width: double.infinity, fit: BoxFit.cover),
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+                    child: Stack(
+                      children: [
+                        Image.network(
+                          _getAviationImg(i),
+                          height: 180,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                        ),
+                        Positioned(
+                          top: 16,
+                          right: 16,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                            decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.9), borderRadius: BorderRadius.circular(16)),
+                            child: Text('\$${v['precio']}', style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w900, fontSize: 18)),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.all(24),
                     child: Column(
                       children: [
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            _buildFlightNode(v['origen_detalle']?['codigo_iata'] ?? '', v['origen_detalle']?['ciudad'] ?? ''),
-                            const _RutaPunteada(),
-                            _buildFlightNode(v['destino_detalle']?['codigo_iata'] ?? '', v['destino_detalle']?['ciudad'] ?? '', alignRight: true),
+                            Expanded(child: _node(v['origen_detalle']?['codigo_iata'] ?? '—', v['origen_detalle']?['ciudad'] ?? 'Origen')),
+                            const Padding(padding: EdgeInsets.symmetric(horizontal: 10), child: Icon(Icons.flight_takeoff, color: AppColors.primary, size: 24)),
+                            Expanded(child: _node(v['destino_detalle']?['codigo_iata'] ?? '—', v['destino_detalle']?['ciudad'] ?? 'Destino', isRight: true)),
                           ],
                         ),
-                        const Divider(height: 32),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text('\$${v['precio']}', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: AppColors.success)),
-                            ElevatedButton(
-                              onPressed: () async {
-                                final loggedIn = await AuthService.isLoggedIn();
-                                if (loggedIn) {
-                                  // Ir a reserva si está logueado
-                                  if (mounted) Navigator.pushNamed(context, '/home');
-                                } else {
-                                  if (mounted) Navigator.pushNamed(context, '/login');
-                                }
-                              },
-                              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                              child: const Text('Reservar', style: TextStyle(color: Colors.white)),
+                        const SizedBox(height: 20),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 54,
+                          child: ElevatedButton(
+                            onPressed: () {},
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.dark,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                              elevation: 0,
                             ),
-                          ],
+                            child: const Text('RESERVAR AHORA', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+                          ),
                         ),
                       ],
                     ),
@@ -256,58 +298,22 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
     );
   }
 
-  Widget _buildFlightNode(String iata, String city, {bool alignRight = false}) {
+  Widget _node(String iata, String city, {bool isRight = false}) {
     return Column(
-      crossAxisAlignment: alignRight ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+      crossAxisAlignment: isRight ? CrossAxisAlignment.end : CrossAxisAlignment.start,
       children: [
-        Text(iata, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.dark)),
-        Text(city, style: const TextStyle(fontSize: 12, color: AppColors.greyAccent)),
+        Text(iata, style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: AppColors.dark)),
+        Text(city, style: const TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.w500)),
       ],
     );
   }
-}
 
-class _RutaPunteada extends StatelessWidget {
-  const _RutaPunteada();
-
-  @override
-  Widget build(BuildContext context) {
-    Widget puntos() => Expanded(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: List.generate(
-              5,
-              (_) => Container(
-                width: 3,
-                height: 1.5,
-                color: Colors.grey.shade400,
-              ),
-            ),
-          ),
-        );
-
-    return Row(
-      children: [
-        Container(
-          width: 5,
-          height: 5,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(color: Colors.grey.shade400),
-          ),
-        ),
-        puntos(),
-        const Icon(Icons.flight, size: 14, color: AppColors.primary),
-        puntos(),
-        Container(
-          width: 5,
-          height: 5,
-          decoration: const BoxDecoration(
-            shape: BoxShape.circle,
-            color: AppColors.primary,
-          ),
-        ),
-      ],
+  Widget _buildFAB() {
+    return FloatingActionButton.extended(
+      backgroundColor: AppColors.primary,
+      onPressed: () => Navigator.pushReplacementNamed(context, '/home'),
+      icon: const Icon(Icons.grid_view_rounded, color: Colors.white),
+      label: const Text('MI PANEL', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
     );
   }
 }
