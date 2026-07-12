@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../config/api.dart';
 import '../config/app_colors.dart';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
@@ -27,6 +28,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   bool _isStaff = false;
   String _username = '';
+  String? _fotoUrl;
   int _selectedIndex = 0;
   List<dynamic> _notifs = [];
 
@@ -51,10 +53,20 @@ class _HomeScreenState extends State<HomeScreen> {
     final username = await AuthService.getUsername();
     final userId = await AuthService.getUserId();
     final notifs = await ApiService.getNotificaciones();
+    // Foto de perfil del pasajero propio (si existe)
+    String? fotoUrl;
+    if (userId != null) {
+      final pasajeros = await ApiService.getPasajeros();
+      final propios = pasajeros.where((p) => p['usuario'] == userId);
+      if (propios.isNotEmpty) {
+        fotoUrl = Api.mediaUrl(propios.first['foto_perfil']);
+      }
+    }
     if (!mounted) return;
     setState(() {
       _isStaff = staff;
       _username = username ?? '';
+      _fotoUrl = fotoUrl;
       // Solo las notificaciones del usuario actual (si el campo existe)
       _notifs = notifs
           .where((n) => n['usuario'] == null || n['usuario'] == userId)
@@ -302,16 +314,20 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: CircleAvatar(
                     radius: 24,
                     backgroundColor: Colors.white.withValues(alpha: 0.15),
-                    child: Text(
-                      _username.isNotEmpty
-                          ? _username[0].toUpperCase()
-                          : (_isStaff ? 'A' : 'P'),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    backgroundImage:
+                        _fotoUrl != null ? NetworkImage(_fotoUrl!) : null,
+                    child: _fotoUrl != null
+                        ? null
+                        : Text(
+                            _username.isNotEmpty
+                                ? _username[0].toUpperCase()
+                                : (_isStaff ? 'A' : 'P'),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                   ),
                   ),
                 ),

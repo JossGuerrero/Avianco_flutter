@@ -1,6 +1,9 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import '../config/api.dart';
 import '../config/app_colors.dart';
 import '../services/api_service.dart';
+import '../widgets/photo_picker.dart';
 
 class AircraftsScreen extends StatefulWidget {
   const AircraftsScreen({super.key});
@@ -151,11 +154,13 @@ class _AircraftsScreenState extends State<AircraftsScreen> {
     final capacidadCtrl = TextEditingController(
       text: aeronave?['capacidad']?.toString() ?? '',
     );
+    File? foto;
     final formKey = GlobalKey<FormState>();
 
     await showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (dialogCtx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
         title: Row(
           children: [
             const Icon(Icons.airplanemode_active, color: _blue),
@@ -229,16 +234,66 @@ class _AircraftsScreenState extends State<AircraftsScreen> {
                 keyboardType: TextInputType.number,
                 validator: (v) => v == null || v.isEmpty ? 'Requerido' : null,
               ),
+              const SizedBox(height: 12),
+              // Foto de la aeronave
+              if (foto != null)
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.file(
+                    foto!,
+                    height: 110,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                  ),
+                )
+              else if (Api.mediaUrl(aeronave?['foto']) != null)
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.network(
+                    Api.mediaUrl(aeronave?['foto'])!,
+                    height: 110,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, e, s) => const SizedBox(),
+                  ),
+                ),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton.icon(
+                  onPressed: () async {
+                    final f = await pickFoto(ctx);
+                    if (f != null) setDialogState(() => foto = f);
+                  },
+                  icon: const Icon(
+                    Icons.add_a_photo,
+                    size: 16,
+                    color: AppColors.primary,
+                  ),
+                  label: Text(
+                    foto == null ? 'Agregar foto' : 'Cambiar foto',
+                    style: const TextStyle(
+                      color: AppColors.primary,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar'),
+            child: const Text('Cancelar', style: TextStyle(color: Colors.grey)),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: _blue),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.dark,
+              minimumSize: const Size(120, 48),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+            ),
             onPressed: () async {
               if (!formKey.currentState!.validate()) return;
               final data = {
@@ -250,9 +305,13 @@ class _AircraftsScreenState extends State<AircraftsScreen> {
               };
               bool ok;
               if (aeronave == null) {
-                ok = await ApiService.createAeronave(data);
+                ok = await ApiService.createAeronaveConFoto(data, foto);
               } else {
-                ok = await ApiService.updateAeronave(aeronave['id'], data);
+                ok = await ApiService.updateAeronaveConFoto(
+                  aeronave['id'],
+                  data,
+                  foto,
+                );
               }
               if (!ctx.mounted) return;
               Navigator.pop(ctx);
@@ -273,6 +332,7 @@ class _AircraftsScreenState extends State<AircraftsScreen> {
             child: const Text('Guardar', style: TextStyle(color: Colors.white)),
           ),
         ],
+        ),
       ),
     );
   }
@@ -354,13 +414,31 @@ class _AircraftsScreenState extends State<AircraftsScreen> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: ListTile(
-                            leading: const CircleAvatar(
-                              backgroundColor: _blue,
-                              child: Icon(
-                                Icons.airplanemode_active,
-                                color: Colors.white,
-                              ),
-                            ),
+                            leading: Api.mediaUrl(a['foto']) != null
+                                ? ClipRRect(
+                                    borderRadius: BorderRadius.circular(10),
+                                    child: Image.network(
+                                      Api.mediaUrl(a['foto'])!,
+                                      width: 52,
+                                      height: 52,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, e, s) =>
+                                          const CircleAvatar(
+                                        backgroundColor: _blue,
+                                        child: Icon(
+                                          Icons.airplanemode_active,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                : const CircleAvatar(
+                                    backgroundColor: _blue,
+                                    child: Icon(
+                                      Icons.airplanemode_active,
+                                      color: Colors.white,
+                                    ),
+                                  ),
                             title: Text(
                               a['modelo'] ?? '—',
                               style: const TextStyle(

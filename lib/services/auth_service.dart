@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:avianco/core/api.dart';
+import '../config/api.dart';
 
 class AuthService {
   static Future<Map<String, dynamic>> login(
@@ -16,29 +16,6 @@ class AuthService {
       );
       return jsonDecode(response.body);
     } catch (e) {
-      print('Login error: $e');
-      return {'error': 'connection_failure', 'message': e.toString()};
-    }
-  }
-
-  static Future<Map<String, dynamic>> register(
-    String username,
-    String email,
-    String password,
-  ) async {
-    try {
-      final response = await http.post(
-        Uri.parse('${Api.baseUrl}/auth/registro/'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'username': username,
-          'email': email,
-          'password': password,
-        }),
-      );
-      return jsonDecode(response.body);
-    } catch (e) {
-      print('Register error: $e');
       return {'error': 'connection_failure', 'message': e.toString()};
     }
   }
@@ -46,17 +23,21 @@ class AuthService {
   static Future<Map<String, dynamic>> register(
     Map<String, dynamic> data,
   ) async {
-    final response = await http.post(
-      Uri.parse('${Api.baseUrl}/auth/registro/'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(data),
-    );
-    final body = jsonDecode(response.body);
-    final Map<String, dynamic> result = body is Map<String, dynamic>
-        ? Map<String, dynamic>.from(body)
-        : {'detail': body.toString()};
-    result['ok'] = response.statusCode == 200 || response.statusCode == 201;
-    return result;
+    try {
+      final response = await http.post(
+        Uri.parse('${Api.baseUrl}/auth/registro/'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(data),
+      );
+      final body = jsonDecode(response.body);
+      final Map<String, dynamic> result = body is Map<String, dynamic>
+          ? Map<String, dynamic>.from(body)
+          : {'detail': body.toString()};
+      result['ok'] = response.statusCode == 200 || response.statusCode == 201;
+      return result;
+    } catch (e) {
+      return {'ok': false, 'detail': 'Error de conexión'};
+    }
   }
 
   static Future<void> saveToken(
@@ -116,8 +97,8 @@ class AuthService {
           },
           body: jsonEncode({'refresh': refresh}),
         );
-      } catch (e) {
-        print('Logout backend error: $e');
+      } catch (_) {
+        // El logout local continúa aunque el backend no responda
       }
     }
     await prefs.clear();

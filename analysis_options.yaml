@@ -9,6 +9,16 @@
 # packages, and plugins designed to encourage good coding practices.
 include: package:flutter_lints/flutter.yaml
 
+analyzer:
+  exclude:
+    # Arquitectura por capas en construcción (usa provider/flutter_dotenv que
+    # no están en pubspec y no está integrada aún). La app funcional vive en
+    # lib/screens + lib/services + lib/config. Quita estas exclusiones cuando
+    # migres a la nueva arquitectura.
+    - lib/core/**
+    - lib/domain/**
+    - lib/presentation/**
+
 linter:
   # The lint rules applied to this project can be customized in the
   # section below to disable rules from the `package:flutter_lints/flutter.yaml`

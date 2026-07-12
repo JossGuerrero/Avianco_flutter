@@ -1,7 +1,10 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import '../config/api.dart';
 import '../config/app_colors.dart';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
+import '../widgets/photo_picker.dart';
 
 class AirportsScreen extends StatefulWidget {
   const AirportsScreen({super.key});
@@ -174,6 +177,7 @@ class _AirportsScreenState extends State<AirportsScreen> {
     final paisCtrl = TextEditingController(text: aeropuerto?['pais'] ?? '');
     int? paisId;
     String? ciudadSel;
+    File? foto;
     final formKey = GlobalKey<FormState>();
 
     String nombreDe(dynamic x) => (x['nombre'] ?? '').toString();
@@ -314,6 +318,50 @@ class _AirportsScreenState extends State<AirportsScreen> {
                     ),
                   ),
                 ],
+                const SizedBox(height: 12),
+                // Foto del aeropuerto
+                if (foto != null)
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.file(
+                      foto!,
+                      height: 110,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
+                  )
+                else if (Api.mediaUrl(aeropuerto?['foto']) != null)
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.network(
+                      Api.mediaUrl(aeropuerto?['foto'])!,
+                      height: 110,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, e, s) => const SizedBox(),
+                    ),
+                  ),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton.icon(
+                    onPressed: () async {
+                      final f = await pickFoto(ctx);
+                      if (f != null) setDialogState(() => foto = f);
+                    },
+                    icon: const Icon(
+                      Icons.add_a_photo,
+                      size: 16,
+                      color: AppColors.primary,
+                    ),
+                    label: Text(
+                      foto == null ? 'Agregar foto' : 'Cambiar foto',
+                      style: const TextStyle(
+                        color: AppColors.primary,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -321,7 +369,7 @@ class _AirportsScreenState extends State<AirportsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar'),
+            child: const Text('Cancelar', style: TextStyle(color: Colors.grey)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: _purple),
@@ -339,9 +387,13 @@ class _AirportsScreenState extends State<AirportsScreen> {
               };
               bool ok;
               if (aeropuerto == null) {
-                ok = await ApiService.createAeropuerto(data);
+                ok = await ApiService.createAeropuertoConFoto(data, foto);
               } else {
-                ok = await ApiService.updateAeropuerto(aeropuerto['id'], data);
+                ok = await ApiService.updateAeropuertoConFoto(
+                  aeropuerto['id'],
+                  data,
+                  foto,
+                );
               }
               if (!ctx.mounted) return;
               Navigator.pop(ctx);
@@ -441,23 +493,51 @@ class _AirportsScreenState extends State<AirportsScreen> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: ListTile(
-                          leading: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 8,
-                            ),
-                            decoration: BoxDecoration(
-                              color: _purple,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              a['codigo_iata'] ?? '—',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
+                          leading: Api.mediaUrl(a['foto']) != null
+                              ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: Image.network(
+                                    Api.mediaUrl(a['foto'])!,
+                                    width: 52,
+                                    height: 52,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, e, s) => Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 8,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: _purple,
+                                        borderRadius:
+                                            BorderRadius.circular(8),
+                                      ),
+                                      child: Text(
+                                        a['codigo_iata'] ?? '—',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                )
+                              : Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 8,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: _purple,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    a['codigo_iata'] ?? '—',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
                           title: Text(
                             a['nombre'] ?? '—',
                             style: const TextStyle(fontWeight: FontWeight.bold),

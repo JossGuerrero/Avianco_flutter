@@ -1,7 +1,8 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-import 'package:avianco/core/api.dart';
+import '../config/api.dart';
 import 'auth_service.dart';
 
 class ApiService {
@@ -31,6 +32,82 @@ class ApiService {
   static Future<int> getReservasCount() => _count('reservas');
   static Future<int> getPasajerosCount() => _count('pasajeros');
   static Future<int> getAeropuertosCount() => _count('aeropuertos');
+
+  // ---------- SUBIDA DE FOTOS (multipart) ----------
+  /// Envía datos + foto opcional como multipart. Si no hay foto, usa JSON.
+  static Future<bool> _sendConFoto(
+    String method,
+    String endpoint,
+    Map<String, dynamic> data, {
+    File? foto,
+    String fotoField = 'foto',
+  }) async {
+    try {
+      final token = await AuthService.getToken();
+      final request = http.MultipartRequest(
+        method,
+        Uri.parse('${Api.baseUrl}/$endpoint'),
+      );
+      request.headers['Authorization'] = 'Bearer $token';
+      data.forEach((k, v) {
+        if (v != null) request.fields[k] = v.toString();
+      });
+      if (foto != null) {
+        request.files.add(
+          await http.MultipartFile.fromPath(fotoField, foto.path),
+        );
+      }
+      final streamed = await request.send();
+      final body = await streamed.stream.bytesToString();
+      debugPrint('$method /$endpoint [${streamed.statusCode}]: $body');
+      return streamed.statusCode == 200 || streamed.statusCode == 201;
+    } catch (e) {
+      debugPrint('$method /$endpoint multipart error: $e');
+      return false;
+    }
+  }
+
+  static Future<bool> createAeronaveConFoto(
+    Map<String, dynamic> data,
+    File? foto,
+  ) =>
+      foto == null
+          ? createAeronave(data)
+          : _sendConFoto('POST', 'aeronaves/', data, foto: foto);
+
+  static Future<bool> updateAeronaveConFoto(
+    int id,
+    Map<String, dynamic> data,
+    File? foto,
+  ) =>
+      foto == null
+          ? updateAeronave(id, data)
+          : _sendConFoto('PATCH', 'aeronaves/$id/', data, foto: foto);
+
+  static Future<bool> createAeropuertoConFoto(
+    Map<String, dynamic> data,
+    File? foto,
+  ) =>
+      foto == null
+          ? createAeropuerto(data)
+          : _sendConFoto('POST', 'aeropuertos/', data, foto: foto);
+
+  static Future<bool> updateAeropuertoConFoto(
+    int id,
+    Map<String, dynamic> data,
+    File? foto,
+  ) =>
+      foto == null
+          ? updateAeropuerto(id, data)
+          : _sendConFoto('PATCH', 'aeropuertos/$id/', data, foto: foto);
+
+  static Future<bool> updatePasajeroFoto(int id, File foto) => _sendConFoto(
+        'PATCH',
+        'pasajeros/$id/',
+        {},
+        foto: foto,
+        fotoField: 'foto_perfil',
+      );
 
   // ---------- ESTADISTICAS (devuelve {} si el endpoint falla) ----------
   static Future<Map<String, dynamic>> _getStats(String endpoint) async {

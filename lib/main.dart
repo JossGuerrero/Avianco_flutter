@@ -9,47 +9,13 @@ import 'services/auth_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  try {
-    await dotenv.load(fileName: ".env");
-  } catch (e) {
-    // Usar valores por defecto si no hay .env
-  }
-
-  runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
-        ChangeNotifierProvider(create: (_) => VuelosProvider()),
-        ChangeNotifierProvider(create: (_) => AeronavesProvider()),
-        ChangeNotifierProvider(create: (_) => ReservasProvider()),
-        ChangeNotifierProvider(create: (_) => PasajerosProvider()),
-        ChangeNotifierProvider(create: (_) => AeropuertosProvider()),
-        ChangeNotifierProvider(create: (_) => PromocionesProvider()),
-        ChangeNotifierProvider(create: (_) => DashboardProvider()),
-        ChangeNotifierProvider(create: (_) => CheckinsProvider()),
-        ChangeNotifierProvider(create: (_) => TripulacionProvider()),
-        ChangeNotifierProvider(create: (_) => ServiciosProvider()),
-      ],
-      child: const AviancoApp(),
-    ),
-  );
+  final loggedIn = await AuthService.isLoggedIn();
+  runApp(AviancoApp(initialRoute: loggedIn ? '/home' : '/'));
 }
 
-class AviancoApp extends StatefulWidget {
-  const AviancoApp({super.key});
-
-  @override
-  State<AviancoApp> createState() => _AviancoAppState();
-}
-
-class _AviancoAppState extends State<AviancoApp> {
-  late Future<void> _loginFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    _loginFuture = Provider.of<AuthProvider>(context, listen: false).tryAutoLogin();
-  }
+class AviancoApp extends StatelessWidget {
+  final String initialRoute;
+  const AviancoApp({super.key, required this.initialRoute});
 
   @override
   Widget build(BuildContext context) {

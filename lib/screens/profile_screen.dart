@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import '../config/api.dart';
 import '../config/app_colors.dart';
+import '../services/api_service.dart';
 import '../services/auth_service.dart';
+import '../widgets/photo_picker.dart';
 
 /// Perfil del usuario logueado.
 /// Muestra los datos guardados en el login/registro. La edición en línea
@@ -15,10 +18,13 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _loading = true;
+  bool _subiendo = false;
   String _username = '';
   String _email = '';
   int? _userId;
   bool _isStaff = false;
+  int? _pasajeroId;
+  String? _fotoUrl;
 
   @override
   void initState() {
@@ -33,14 +39,64 @@ class _ProfileScreenState extends State<ProfileScreen> {
       AuthService.getUserId(),
       AuthService.isStaff(),
     ]);
+    final userId = results[2] as int?;
+    // Busca el pasajero propio para la foto de perfil
+    int? pasajeroId;
+    String? fotoUrl;
+    if (userId != null) {
+      final pasajeros = await ApiService.getPasajeros();
+      final propios = pasajeros.where((p) => p['usuario'] == userId);
+      if (propios.isNotEmpty) {
+        pasajeroId = propios.first['id'];
+        fotoUrl = Api.mediaUrl(propios.first['foto_perfil']);
+      }
+    }
     if (!mounted) return;
     setState(() {
       _username = (results[0] as String?) ?? '';
       _email = (results[1] as String?) ?? '';
-      _userId = results[2] as int?;
+      _userId = userId;
       _isStaff = results[3] as bool;
+      _pasajeroId = pasajeroId;
+      _fotoUrl = fotoUrl;
       _loading = false;
     });
+  }
+
+  Future<void> _cambiarFoto() async {
+    if (_pasajeroId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Primero completa tus datos de pasajero (al reservar un vuelo)',
+          ),
+          backgroundColor: AppColors.primary,
+        ),
+      );
+      return;
+    }
+    final foto = await pickFoto(context);
+    if (foto == null || !mounted) return;
+    setState(() => _subiendo = true);
+    final ok = await ApiService.updatePasajeroFoto(_pasajeroId!, foto);
+    if (!mounted) return;
+    setState(() => _subiendo = false);
+    if (ok) {
+      await _load();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Foto de perfil actualizada')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'No se pudo subir la foto (¿el backend tiene el campo foto_perfil?)',
+          ),
+          backgroundColor: AppColors.primary,
+        ),
+      );
+    }
   }
 
   Future<void> _logout() async {
@@ -127,19 +183,52 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     child: Column(
                       children: [
-                        CircleAvatar(
-                          radius: 40,
-                          backgroundColor:
-                              Colors.white.withValues(alpha: 0.15),
-                          child: Text(
-                            _username.isNotEmpty
-                                ? _username[0].toUpperCase()
-                                : '?',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 34,
-                              fontWeight: FontWeight.bold,
-                            ),
+                        GestureDetector(
+                          onTap: _subiendo ? null : _cambiarFoto,
+                          child: Stack(
+                            children: [
+                              CircleAvatar(
+                                radius: 40,
+                                backgroundColor:
+                                    Colors.white.withValues(alpha: 0.15),
+                                backgroundImage: _fotoUrl != null
+                                    ? NetworkImage(_fotoUrl!)
+                                    : null,
+                                child: _subiendo
+                                    ? const CircularProgressIndicator(
+                                        color: Colors.white,
+                                        strokeWidth: 2,
+                                      )
+                                    : _fotoUrl == null
+                                    ? Text(
+                                        _username.isNotEmpty
+                                            ? _username[0].toUpperCase()
+                                            : '?',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 34,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      )
+                                    : null,
+                              ),
+                              Positioned(
+                                bottom: 0,
+                                right: 0,
+                                child: Container(
+                                  padding: const EdgeInsets.all(5),
+                                  decoration: const BoxDecoration(
+                                    color: Colors.white,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.photo_camera,
+                                    size: 14,
+                                    color: AppColors.primary,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                         const SizedBox(height: 12),

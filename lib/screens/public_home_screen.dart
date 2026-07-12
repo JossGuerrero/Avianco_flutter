@@ -278,8 +278,10 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                             ),
                           ],
                         ),
+                      ),
+                    ),
                   ),
-                  
+
                   // Promociones
                   if (_promociones.isNotEmpty)
                     SliverToBoxAdapter(
@@ -356,7 +358,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                           style: const TextStyle(
-                                            color: Colors.white90,
+                                            color: Colors.white70,
                                             fontSize: 13,
                                           ),
                                         ),
