@@ -48,6 +48,22 @@ class _CrewScreenState extends State<CrewScreen> {
     }
   }
 
+  Color _rolColor(String rol, bool activo) {
+    if (!activo) return Colors.grey;
+    switch (rol) {
+      case 'piloto':
+        return AppColors.primary;
+      case 'copiloto':
+        return AppColors.primaryLight;
+      case 'azafata':
+        return AppColors.deepRed;
+      case 'tecnico':
+        return AppColors.darkAlt;
+      default:
+        return AppColors.greyAccent;
+    }
+  }
+
   Future<void> _delete(int id) async {
     final ok = await ApiService.deleteTripulacion(id);
     if (!mounted) return;
@@ -244,13 +260,16 @@ class _CrewScreenState extends State<CrewScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: _teal,
         title: const Text(
           'Tripulación',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         iconTheme: const IconThemeData(color: Colors.white),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(gradient: AppColors.mainGradient),
+        ),
         actions: [
           IconButton(
             tooltip: 'Asignaciones de vuelo',
@@ -276,12 +295,21 @@ class _CrewScreenState extends State<CrewScreen> {
               controller: _searchCtrl,
               decoration: InputDecoration(
                 hintText: 'Buscar por nombre o licencia...',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
+                prefixIcon: const Icon(Icons.search, color: Colors.grey, size: 22),
+                filled: true,
+                fillColor: Colors.white,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: const BorderSide(color: Colors.black12),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
                 ),
                 suffixIcon: IconButton(
-                  icon: const Icon(Icons.clear),
+                  icon: const Icon(Icons.clear, color: Colors.grey, size: 20),
                   onPressed: () {
                     _searchCtrl.clear();
                     _load();
@@ -326,11 +354,12 @@ class _CrewScreenState extends State<CrewScreen> {
                         return Card(
                           elevation: 2,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(16),
                           ),
                           child: ListTile(
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                             leading: CircleAvatar(
-                              backgroundColor: activo ? _teal : Colors.grey,
+                              backgroundColor: _rolColor(t['rol'] ?? '', activo),
                               child: Icon(
                                 _rolIcon(t['rol'] ?? ''),
                                 color: Colors.white,
@@ -340,36 +369,41 @@ class _CrewScreenState extends State<CrewScreen> {
                               '${t['nombre'] ?? ''} ${t['apellido'] ?? ''}',
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
+                                color: AppColors.dark,
                               ),
                             ),
                             subtitle: Text(
-                              '${t['rol'] ?? '—'} · Licencia: ${t['licencia'] ?? '—'}',
+                              '${(t['rol'] ?? '—').toString().toUpperCase()} · Lic: ${t['licencia'] ?? '—'}',
+                              style: const TextStyle(fontSize: 12),
                             ),
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Container(
                                   padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
+                                    horizontal: 10,
                                     vertical: 4,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: activo ? _teal : Colors.grey,
-                                    borderRadius: BorderRadius.circular(8),
+                                    color: (activo ? AppColors.success : Colors.grey).withValues(alpha: 0.12),
+                                    borderRadius: BorderRadius.circular(30),
                                   ),
                                   child: Text(
-                                    activo ? 'Activo' : 'Inactivo',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 11,
+                                    (activo ? 'Activo' : 'Inactivo').toUpperCase(),
+                                    style: TextStyle(
+                                      color: activo ? AppColors.success : Colors.grey,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 1.0,
                                     ),
                                   ),
                                 ),
+                                const SizedBox(width: 4),
                                 IconButton(
                                   icon: const Icon(
                                     Icons.edit,
                                     size: 20,
-                                    color: _teal,
+                                    color: AppColors.darkAlt,
                                   ),
                                   onPressed: () => _showForm(miembro: t),
                                 ),
