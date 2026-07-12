@@ -67,132 +67,185 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                 slivers: [
                   // AppBar con gradiente
                   SliverAppBar(
-                    expandedHeight: 200,
+                    expandedHeight: 220,
                     pinned: true,
                     backgroundColor: _purple,
                     actions: [
-                      TextButton.icon(
-                        onPressed: () => Navigator.pushNamed(context, '/login'),
-                        icon: const Icon(Icons.person_outline,
-                            color: Colors.white, size: 20),
-                        label: const Text('Ingresar',
-                            style: TextStyle(color: Colors.white)),
+                      Container(
+                        margin: const EdgeInsets.only(right: 12, top: 8, bottom: 8),
+                        child: ElevatedButton.icon(
+                          onPressed: () => Navigator.pushNamed(context, '/login'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white.withValues(alpha: 0.2),
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                          ),
+                          icon: const Icon(Icons.person_outline, size: 18),
+                          label: const Text(
+                            'Ingresar',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ),
                       ),
                     ],
                     flexibleSpace: FlexibleSpaceBar(
-                      title: const Text('avianco',
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold, letterSpacing: 2)),
+                      titlePadding: const EdgeInsets.only(left: 16, bottom: 14),
+                      title: const Text(
+                        'avianco',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 3,
+                          color: Colors.white,
+                        ),
+                      ),
                       background: Container(
                         decoration: const BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [_purple, _darkPurple],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
+                          gradient: AppColors.mainGradient,
                         ),
-                        child: const Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.airplanemode_active,
-                                  size: 48, color: Colors.white24),
-                              SizedBox(height: 8),
-                              Padding(
-                                padding: EdgeInsets.only(bottom: 40),
-                                child: Text('Conectando destinos',
-                                    style: TextStyle(
-                                        color: Colors.white70, fontSize: 13)),
+                        child: const Stack(
+                          children: [
+                            Positioned(
+                              right: -40,
+                              top: -40,
+                              child: Icon(
+                                Icons.airplanemode_active,
+                                size: 180,
+                                color: Colors.white10,
                               ),
-                            ],
-                          ),
+                            ),
+                            Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.airplanemode_active,
+                                    size: 48,
+                                    color: Colors.white24,
+                                  ),
+                                  SizedBox(height: 8),
+                                  Padding(
+                                    padding: EdgeInsets.only(bottom: 24),
+                                    child: Text(
+                                      'Conectando destinos',
+                                      style: TextStyle(
+                                        color: Colors.white70,
+                                        fontSize: 13,
+                                        letterSpacing: 1.5,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
                   ),
-
                   // Buscador estilo Avianca
                   SliverToBoxAdapter(
                     child: Transform.translate(
-                      offset: const Offset(0, -30),
+                      offset: const Offset(0, -35),
                       child: Container(
                         margin: const EdgeInsets.symmetric(horizontal: 16),
-                        padding: const EdgeInsets.all(20),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 20,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(24),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.16),
-                              blurRadius: 28,
-                              spreadRadius: 0,
-                              offset: const Offset(0, 12),
+                              color: Colors.black.withValues(alpha: 0.12),
+                              blurRadius: 24,
+                              offset: const Offset(0, 10),
                             ),
                           ],
                         ),
                         child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
+                            const Row(
                               children: [
-                                const Icon(Icons.flight_takeoff,
-                                    color: _purple, size: 20),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      const Text('Desde',
-                                          style: TextStyle(
-                                              fontSize: 11,
-                                              color: Colors.grey)),
-                                      Text(
-                                        _vuelos.isNotEmpty
-                                            ? (_vuelos[0]['origen_detalle']
-                                                    ?['ciudad'] ??
-                                                'Quito')
-                                            : 'Quito',
-                                        style: const TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                    ],
+                                Icon(Icons.flight_takeoff, color: _purple, size: 18),
+                                SizedBox(width: 8),
+                                Text(
+                                  'Planifica tu viaje',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.dark,
+                                    letterSpacing: 0.5,
                                   ),
                                 ),
                               ],
                             ),
-                            Container(
-                              margin: const EdgeInsets.symmetric(vertical: 12),
-                              height: 2,
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [
-                                    AppColors.primary.withValues(alpha: 0.5),
-                                    AppColors.dark.withValues(alpha: 0.15),
-                                  ],
-                                ),
-                                borderRadius: BorderRadius.circular(1),
-                              ),
-                            ),
+                            const SizedBox(height: 16),
                             Row(
                               children: [
-                                const Icon(Icons.flight_land,
-                                    color: _purple, size: 20),
-                                const SizedBox(width: 12),
+                                // Origen
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      const Text('Explora destinos',
-                                          style: TextStyle(
-                                              fontSize: 11,
-                                              color: Colors.grey)),
+                                      const Text(
+                                        'Desde',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: Colors.grey,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
                                       Text(
-                                        '${_vuelos.length} vuelos disponibles',
+                                        _vuelos.isNotEmpty
+                                            ? (_vuelos[0]['origen_detalle']?['ciudad'] ?? 'Quito')
+                                            : 'Quito',
                                         style: const TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold),
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.dark,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                // Icono central
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.background,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.swap_horiz,
+                                    color: _purple,
+                                    size: 20,
+                                  ),
+                                ),
+                                // Destino
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      const Text(
+                                        'Hacia',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: Colors.grey,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        '${_vuelos.length} destinos',
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.dark,
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -204,26 +257,29 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                               width: double.infinity,
                               height: 52,
                               child: ElevatedButton(
-                                onPressed: () =>
-                                    Navigator.pushNamed(context, '/login'),
+                                onPressed: () => Navigator.pushNamed(context, '/login'),
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.black,
+                                  backgroundColor: AppColors.primary,
+                                  foregroundColor: Colors.white,
+                                  elevation: 2,
                                   shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(30)),
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
                                 ),
-                                child: const Text('Reservar ahora',
-                                    style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold)),
+                                child: const Text(
+                                  'Reservar ahora',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 1,
+                                  ),
+                                ),
                               ),
                             ),
                           ],
                         ),
-                      ),
-                    ),
                   ),
-
+                  
                   // Promociones
                   if (_promociones.isNotEmpty)
                     SliverToBoxAdapter(
@@ -237,7 +293,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                                     fontSize: 20, fontWeight: FontWeight.bold)),
                             const SizedBox(height: 12),
                             SizedBox(
-                              height: 120,
+                              height: 140,
                               child: ListView.separated(
                                 scrollDirection: Axis.horizontal,
                                 itemCount: _promociones.length,
@@ -245,57 +301,83 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                                     const SizedBox(width: 12),
                                 itemBuilder: (ctx, i) {
                                   final p = _promociones[i];
+                                  final pct = double.tryParse(p['descuento']?.toString() ?? '0')?.toInt() ?? 0;
                                   return Container(
-                                    width: 260,
+                                    width: 280,
                                     padding: const EdgeInsets.all(16),
                                     decoration: BoxDecoration(
-                                      gradient: const LinearGradient(
-                                        colors: [
-                                          AppColors.deepRed,
-                                          AppColors.dark
-                                        ],
-                                      ),
-                                      borderRadius: BorderRadius.circular(16),
+                                      gradient: AppColors.promoGradient,
+                                      borderRadius: BorderRadius.circular(18),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: AppColors.primary.withValues(alpha: 0.25),
+                                          blurRadius: 10,
+                                          offset: const Offset(0, 4),
+                                        ),
+                                      ],
                                     ),
                                     child: Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 10, vertical: 4),
-                                          decoration: BoxDecoration(
-                                            color: Colors.white,
-                                            borderRadius:
-                                                BorderRadius.circular(20),
-                                          ),
-                                          child: Text(
-                                            '${double.tryParse(p['descuento']?.toString() ?? '0')?.toInt() ?? 0}% OFF',
-                                            style: const TextStyle(
-                                                color: AppColors.primary,
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 13),
-                                          ),
-                                        ),
-                                        const Spacer(),
-                                        Text(p['codigo'] ?? '',
-                                            style: const TextStyle(
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text(
+                                              p['codigo'] ?? '',
+                                              style: const TextStyle(
                                                 color: Colors.white,
                                                 fontWeight: FontWeight.bold,
-                                                fontSize: 18)),
+                                                fontSize: 18,
+                                                letterSpacing: 1.2,
+                                              ),
+                                            ),
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(
+                                                  horizontal: 10, vertical: 4),
+                                              decoration: BoxDecoration(
+                                                color: Colors.white,
+                                                borderRadius: BorderRadius.circular(20),
+                                              ),
+                                              child: Text(
+                                                '$pct% OFF',
+                                                style: const TextStyle(
+                                                  color: AppColors.primary,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const Spacer(),
                                         Text(
                                           p['descripcion'] ?? '',
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                           style: const TextStyle(
-                                              color: Colors.white70,
-                                              fontSize: 12),
+                                            color: Colors.white90,
+                                            fontSize: 13,
+                                          ),
                                         ),
-                                        const SizedBox(height: 4),
-                                        Text('Válido hasta ${p['fecha_fin'] ?? ''}',
-                                            style: const TextStyle(
+                                        const SizedBox(height: 6),
+                                        Row(
+                                          children: [
+                                            const Icon(
+                                              Icons.access_time,
+                                              color: Colors.white60,
+                                              size: 12,
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              'Válido hasta ${p['fecha_fin'] ?? ''}',
+                                              style: const TextStyle(
                                                 color: Colors.white60,
-                                                fontSize: 11)),
+                                                fontSize: 11,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ],
                                     ),
                                   );
@@ -375,13 +457,12 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                                     child: Container(
                                       decoration: BoxDecoration(
                                         color: Colors.white,
-                                        borderRadius: BorderRadius.circular(18),
+                                        borderRadius: BorderRadius.circular(20),
                                         boxShadow: [
                                           BoxShadow(
-                                            color: Colors.black
-                                                .withValues(alpha: 0.08),
-                                            blurRadius: 12,
-                                            offset: const Offset(0, 4),
+                                            color: Colors.black.withValues(alpha: 0.08),
+                                            blurRadius: 16,
+                                            offset: const Offset(0, 6),
                                           ),
                                         ],
                                       ),
@@ -389,11 +470,11 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
                                         children: [
-                                          // Imagen del destino
+                                          // Imagen del destino con tags flotantes
                                           ClipRRect(
                                             borderRadius:
                                                 const BorderRadius.vertical(
-                                                    top: Radius.circular(18)),
+                                                    top: Radius.circular(20)),
                                             child: Stack(
                                               children: [
                                                 Image.network(
@@ -426,9 +507,10 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                                                         size: 48),
                                                   ),
                                                 ),
+                                                // Tag de estado (arriba izquierda)
                                                 Positioned(
                                                   top: 12,
-                                                  right: 12,
+                                                  left: 12,
                                                   child: Container(
                                                     padding: const EdgeInsets
                                                         .symmetric(
@@ -443,17 +525,48 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                                                               20),
                                                     ),
                                                     child: Text(
-                                                      v['estado'] ?? '',
+                                                      (v['estado'] ?? '').toString().toUpperCase(),
                                                       style: const TextStyle(
                                                           color: Colors.white,
-                                                          fontSize: 11),
+                                                          fontWeight: FontWeight.bold,
+                                                          fontSize: 10),
+                                                    ),
+                                                  ),
+                                                ),
+                                                // Tag de precio (abajo derecha)
+                                                Positioned(
+                                                  bottom: 12,
+                                                  right: 12,
+                                                  child: Container(
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                        horizontal: 12,
+                                                        vertical: 6),
+                                                    decoration: BoxDecoration(
+                                                      color: AppColors.primary,
+                                                      borderRadius:
+                                                          BorderRadius.circular(12),
+                                                      boxShadow: [
+                                                        BoxShadow(
+                                                          color: AppColors.primary.withValues(alpha: 0.3),
+                                                          blurRadius: 6,
+                                                          offset: const Offset(0, 3),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    child: Text(
+                                                      '\$${v['precio']}',
+                                                      style: const TextStyle(
+                                                          color: Colors.white,
+                                                          fontWeight: FontWeight.bold,
+                                                          fontSize: 16),
                                                     ),
                                                   ),
                                                 ),
                                               ],
                                             ),
                                           ),
-                                          // Info
+                                          // Info estilo pase de abordar
                                           Padding(
                                             padding: const EdgeInsets.all(16),
                                             child: Column(
@@ -462,108 +575,82 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                                               children: [
                                                 Row(
                                                   children: [
+                                                    // Origen
                                                     Expanded(
-                                                      child: Text(
-                                                        destinoCiudad,
-                                                        style: const TextStyle(
-                                                            fontSize: 18,
-                                                            fontWeight:
-                                                                FontWeight
-                                                                    .bold),
+                                                      child: Column(
+                                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                                        children: [
+                                                          Text(
+                                                            origenIata ?? '—',
+                                                            style: const TextStyle(
+                                                                fontSize: 22,
+                                                                fontWeight: FontWeight.bold,
+                                                                color: AppColors.dark),
+                                                          ),
+                                                          Text(
+                                                            origenCiudad,
+                                                            style: const TextStyle(
+                                                                fontSize: 12,
+                                                                color: Colors.grey),
+                                                          ),
+                                                        ],
                                                       ),
                                                     ),
-                                                    Container(
-                                                      padding:
-                                                          const EdgeInsets
-                                                              .symmetric(
-                                                          horizontal: 8,
-                                                          vertical: 3),
-                                                      decoration:
-                                                          BoxDecoration(
-                                                        color: AppColors.dark
-                                                            .withValues(
-                                                                alpha: 0.06),
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(8),
-                                                        border: Border.all(
-                                                          color: AppColors
-                                                              .dark
-                                                              .withValues(
-                                                                  alpha:
-                                                                      0.15),
-                                                        ),
-                                                      ),
-                                                      child: const Text(
-                                                        'ECONOMY',
-                                                        style: TextStyle(
-                                                          fontSize: 9,
-                                                          letterSpacing: 1,
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          color: AppColors
-                                                              .greyAccent,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                                const SizedBox(height: 6),
-                                                Row(
-                                                  children: [
-                                                    Text(
-                                                      origenCiudad.toString(),
-                                                      style: const TextStyle(
-                                                          color: Colors.grey,
-                                                          fontSize: 12),
-                                                    ),
-                                                    const SizedBox(width: 8),
-                                                    const Expanded(
+                                                    // Conexión
+                                                    const SizedBox(
+                                                      width: 80,
                                                       child: _RutaPunteada(),
                                                     ),
-                                                    const SizedBox(width: 8),
-                                                    Text(
-                                                      destinoCiudad.toString(),
-                                                      style: const TextStyle(
-                                                          color: Colors.grey,
-                                                          fontSize: 12),
+                                                    // Destino
+                                                    Expanded(
+                                                      child: Column(
+                                                        crossAxisAlignment: CrossAxisAlignment.end,
+                                                        children: [
+                                                          Text(
+                                                            destinoIata ?? '—',
+                                                            style: const TextStyle(
+                                                                fontSize: 22,
+                                                                fontWeight: FontWeight.bold,
+                                                                color: AppColors.dark),
+                                                          ),
+                                                          Text(
+                                                            destinoCiudad,
+                                                            style: const TextStyle(
+                                                                fontSize: 12,
+                                                                color: Colors.grey),
+                                                          ),
+                                                        ],
+                                                      ),
                                                     ),
                                                   ],
                                                 ),
-                                                const SizedBox(height: 12),
+                                                const Divider(height: 24, thickness: 1),
                                                 Row(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.end,
+                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                   children: [
-                                                    Column(
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
+                                                    Row(
                                                       children: [
-                                                        const Text(
-                                                            'Por trayecto desde',
-                                                            style: TextStyle(
-                                                                fontSize: 11,
-                                                                color: Colors
-                                                                    .grey)),
-                                                        Text('\$${v['precio']}',
-                                                            style: const TextStyle(
-                                                                fontSize: 26,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold,
-                                                                color: _purple)),
+                                                        const Icon(Icons.calendar_today, size: 14, color: Colors.grey),
+                                                        const SizedBox(width: 6),
+                                                        Text(
+                                                          (v['fecha_salida'] ?? '').toString().split('T').first,
+                                                          style: const TextStyle(fontSize: 12, color: Colors.grey),
+                                                        ),
                                                       ],
                                                     ),
-                                                    const Spacer(),
-                                                    Text(
-                                                      (v['fecha_salida'] ?? '')
-                                                          .toString()
-                                                          .split('T')
-                                                          .first,
-                                                      style: const TextStyle(
-                                                          fontSize: 12,
-                                                          color: Colors.grey),
+                                                    Container(
+                                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                                      decoration: BoxDecoration(
+                                                        color: AppColors.dark.withValues(alpha: 0.05),
+                                                        borderRadius: BorderRadius.circular(6),
+                                                      ),
+                                                      child: const Text(
+                                                        'CLASE ECONÓMICA',
+                                                        style: TextStyle(
+                                                            fontSize: 9,
+                                                            fontWeight: FontWeight.bold,
+                                                            color: AppColors.greyAccent),
+                                                      ),
                                                     ),
                                                   ],
                                                 ),
