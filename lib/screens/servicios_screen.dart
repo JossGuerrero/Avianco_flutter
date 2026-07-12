@@ -22,6 +22,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
   Future<void> _load() async {
     setState(() => _loading = true);
     final data = await api.ApiService.getServicios();
+    if (!mounted) return;
     setState(() {
       _items = data;
       _loading = false;
@@ -30,9 +31,30 @@ class _ServicesScreenState extends State<ServicesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_loading) return const Center(child: CircularProgressIndicator());
-    if (_items.isEmpty)
-      return const Center(child: Text('No hay servicios disponibles'));
+    if (_loading) {
+      return const Center(
+        child: CircularProgressIndicator(color: AppColors.primary),
+      );
+    }
+    if (_items.isEmpty) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.room_service_outlined, size: 64, color: Colors.grey),
+            SizedBox(height: 12),
+            Text(
+              'No hay servicios disponibles',
+              style: TextStyle(
+                color: Colors.grey,
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
     return ListView.separated(
       padding: const EdgeInsets.all(16),
@@ -43,14 +65,35 @@ class _ServicesScreenState extends State<ServicesScreen> {
         final name = item['nombre'] ?? item['name'] ?? '';
         final price = item['precio'] ?? item['price'] ?? '';
         return Card(
+          elevation: 2,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           child: ListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             leading: const CircleAvatar(
-              backgroundColor: AppColors.deepRed,
+              backgroundColor: AppColors.dark,
               child: Icon(Icons.room_service, color: Colors.white),
             ),
-            title: Text(name.toString()),
-            subtitle: Text('USD $price'),
-            trailing: const Icon(Icons.chevron_right),
+            title: Text(
+              name.toString(),
+              style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.dark),
+            ),
+            trailing: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                'USD $price',
+                style: const TextStyle(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                ),
+              ),
+            ),
           ),
         );
       },
