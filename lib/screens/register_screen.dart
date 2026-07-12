@@ -79,14 +79,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
   InputDecoration _decoration(String label, IconData icon) {
     return InputDecoration(
       labelText: label,
-      labelStyle: const TextStyle(color: Colors.white70),
-      prefixIcon: Icon(icon, color: Colors.white54, size: 20),
+      labelStyle: const TextStyle(color: Colors.white70, fontSize: 14),
+      prefixIcon: Icon(icon, color: Colors.white70, size: 20),
+      filled: true,
+      fillColor: Colors.white.withValues(alpha: 0.08),
       enabledBorder: OutlineInputBorder(
-        borderSide: const BorderSide(color: Colors.white38),
+        borderSide: const BorderSide(color: Colors.white24),
         borderRadius: BorderRadius.circular(16),
       ),
       focusedBorder: OutlineInputBorder(
-        borderSide: const BorderSide(color: Colors.white),
+        borderSide: const BorderSide(color: Colors.white, width: 1.5),
         borderRadius: BorderRadius.circular(16),
       ),
       errorStyle: const TextStyle(color: Color(0xFFFFCDD2)),
@@ -95,7 +97,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         borderRadius: BorderRadius.circular(16),
       ),
       focusedErrorBorder: OutlineInputBorder(
-        borderSide: const BorderSide(color: Color(0xFFFFCDD2)),
+        borderSide: const BorderSide(color: Color(0xFFFFCDD2), width: 1.5),
         borderRadius: BorderRadius.circular(16),
       ),
     );
@@ -119,25 +121,41 @@ class _RegisterScreenState extends State<RegisterScreen> {
               key: _formKey,
               child: Column(
                 children: [
-                  const SizedBox(height: 24),
-                  const Icon(
-                    Icons.airplanemode_active,
-                    size: 64,
-                    color: Colors.white,
+                  const SizedBox(height: 20),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Colors.white24,
+                        width: 1.5,
+                      ),
+                    ),
+                    child: const Icon(
+                      Icons.airplanemode_active,
+                      size: 40,
+                      color: Colors.white,
+                    ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 16),
                   const Text(
                     'Crear cuenta',
                     style: TextStyle(
-                      fontSize: 30,
+                      fontSize: 28,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
-                      letterSpacing: 1,
+                      letterSpacing: 1.5,
                     ),
                   ),
+                  const SizedBox(height: 4),
                   const Text(
                     'Únete a Avianco Airlines',
-                    style: TextStyle(color: Colors.white70, fontSize: 14),
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 14,
+                      letterSpacing: 0.5,
+                    ),
                   ),
                   const SizedBox(height: 36),
                   TextFormField(
@@ -256,32 +274,43 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       onPressed: _loading ? null : _register,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
+                        foregroundColor: AppColors.dark,
+                        elevation: 2,
+                        shadowColor: Colors.black.withValues(alpha: 0.3),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),
                       ),
                       child: _loading
-                          ? const CircularProgressIndicator(
-                              color: AppColors.primary,
+                          ? const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                color: AppColors.primary,
+                                strokeWidth: 2.5,
+                              ),
                             )
                           : const Text(
                               'Registrarme',
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
-                                color: AppColors.dark,
+                                letterSpacing: 0.5,
                               ),
                             ),
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
                   TextButton(
                     onPressed: () =>
                         Navigator.pushReplacementNamed(context, '/login'),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
                     child: RichText(
                       text: const TextSpan(
                         text: '¿Ya tienes cuenta? ',
-                        style: TextStyle(color: Colors.white70),
+                        style: TextStyle(color: Colors.white70, fontSize: 14),
                         children: [
                           TextSpan(
                             text: 'Inicia sesión',
