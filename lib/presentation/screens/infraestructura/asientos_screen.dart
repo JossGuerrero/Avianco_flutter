@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../services/api_service.dart';
-import '../services/auth_service.dart';
+import 'package:avianco/services/api_service.dart';
+import 'package:avianco/services/auth_service.dart';
 
 class SeatsScreen extends StatefulWidget {
   const SeatsScreen({super.key});
