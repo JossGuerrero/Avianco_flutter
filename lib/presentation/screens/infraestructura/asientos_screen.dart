@@ -181,6 +181,24 @@ class _SeatsScreenState extends State<SeatsScreen> {
     );
   }
 
+  Widget _buildFormField(TextEditingController ctrl, String label, IconData icon, {TextInputType type = TextInputType.text}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: TextFormField(
+        controller: ctrl,
+        keyboardType: type,
+        decoration: InputDecoration(
+          labelText: label,
+          prefixIcon: Icon(icon, color: AppColors.primary, size: 20),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+          filled: true,
+          fillColor: Colors.grey[50],
+        ),
+        validator: (v) => v == null || v.isEmpty ? 'Requerido' : null,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -272,6 +290,9 @@ class _SeatsScreenState extends State<SeatsScreen> {
                 },
               ),
             ),
+          ),
+        ),
+      ),
     );
   }
 }
