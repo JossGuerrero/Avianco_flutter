@@ -51,7 +51,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
   }
 
   Color _estadoColor(String estado) {
-    switch (estado) {
+    switch (estado.toLowerCase()) {
       case 'pagada':
         return AppColors.success;
       case 'pendiente':
@@ -59,61 +59,154 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
       case 'anulada':
         return AppColors.primary;
       default:
-        return _grey;
+        return AppColors.greyAccent;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Facturas'), backgroundColor: _grey),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : _items.isEmpty
-          ? const Center(child: Text('No hay facturas'))
-          : RefreshIndicator(
-              onRefresh: _load,
-              child: ListView.separated(
-                padding: const EdgeInsets.all(16),
-                itemCount: _items.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 12),
-                itemBuilder: (context, index) {
-                  final item = _items[index];
-                  final total = item['total'] ?? '0.00';
-                  final impuestos = item['impuestos'] ?? '0.00';
-                  final estado = (item['estado'] ?? '').toString();
-                  return Card(
-                    child: ListTile(
-                      leading: const CircleAvatar(
-                        backgroundColor: _grey,
-                        child: Icon(Icons.receipt_long, color: Colors.white),
-                      ),
-                      title: Text('Factura #${item['id']}'),
-                      subtitle: Text(
-                        'Total: \$$total · Impuestos: \$$impuestos',
-                      ),
-                      trailing: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: _estadoColor(estado),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          estado,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 11,
-                          ),
+      backgroundColor: AppColors.background,
+      body: CustomScrollView(
+        physics: const BouncingScrollPhysics(),
+        slivers: [
+          _buildAppBar(),
+          _loading
+              ? const SliverFillRemaining(
+                  child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
+                )
+              : _items.isEmpty
+                  ? const SliverFillRemaining(
+                      child: Center(child: Text('No hay facturas registradas')),
+                    )
+                  : SliverPadding(
+                      padding: const EdgeInsets.all(20),
+                      sliver: SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                          (ctx, i) => _buildInvoiceCard(_items[i]),
+                          childCount: _items.length,
                         ),
                       ),
                     ),
-                  );
-                },
-              ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAppBar() {
+    return SliverAppBar(
+      expandedHeight: 120,
+      floating: true,
+      pinned: true,
+      elevation: 0,
+      backgroundColor: AppColors.primary,
+      flexibleSpace: FlexibleSpaceBar(
+        centerTitle: true,
+        title: const Text(
+          'Historial de Facturas',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+        ),
+        background: Container(
+          decoration: const BoxDecoration(gradient: AppColors.bannerGradient),
+          child: Opacity(
+            opacity: 0.1,
+            child: Icon(Icons.receipt_long, size: 150, color: Colors.white.withValues(alpha: 0.5)),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInvoiceCard(item) {
+    final estado = (item['estado'] ?? '').toString();
+    final total = item['total'] ?? '0.00';
+    final impuestos = item['impuestos'] ?? '0.00';
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 12, offset: const Offset(0, 4)),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Factura #${item['id']}',
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.dark),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Reserva ID: ${item['reserva']}',
+                      style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                    ),
+                  ],
+                ),
+                _buildStatusBadge(estado),
+              ],
             ),
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16),
+              child: Divider(height: 1, color: Color(0xFFF0F0F0)),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'IMPUESTOS',
+                      style: TextStyle(color: Colors.grey[400], fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+                    ),
+                    const SizedBox(height: 4),
+                    Text('\$$impuestos', style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.dark)),
+                  ],
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      'TOTAL A PAGAR',
+                      style: TextStyle(color: Colors.grey[400], fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '\$$total',
+                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: AppColors.primary),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatusBadge(String estado) {
+    final color = _estadoColor(estado);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Text(
+        estado.toUpperCase(),
+        style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 10, letterSpacing: 0.5),
+      ),
     );
   }
 }

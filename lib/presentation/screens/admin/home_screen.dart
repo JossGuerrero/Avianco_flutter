@@ -29,7 +29,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
 
   final List<Widget> _screens = const [
-    DashboardScreen(),
+    SizedBox.shrink(), // Dashboard is built inline when _selectedIndex is 0
     FlightsScreen(),
     ReservationsScreen(),
     PassengersScreen(),
@@ -57,11 +57,22 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.primary,
         elevation: 0,
-        title: const Row(
+        centerTitle: false,
+        title: Row(
           children: [
-            Icon(Icons.airplanemode_active, color: Colors.white),
-            SizedBox(width: 8),
-            Text('avianco', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 2)),
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(Icons.airplanemode_active, color: Colors.white, size: 20),
+            ),
+            const SizedBox(width: 12),
+            const Text(
+              'avianco',
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, letterSpacing: 1.5, fontSize: 22),
+            ),
           ],
         ),
         actions: [
@@ -70,7 +81,8 @@ class _HomeScreenState extends State<HomeScreen> {
               await AuthService.logout();
               if (mounted) Navigator.pushReplacementNamed(context, '/');
             },
-            icon: const Icon(Icons.logout, color: Colors.white70),
+            icon: const Icon(Icons.logout_rounded, color: Colors.white),
+            tooltip: 'Cerrar sesión',
           ),
         ],
       ),
@@ -89,10 +101,10 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildGreetingHeader() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+      padding: const EdgeInsets.fromLTRB(24, 20, 24, 28),
       decoration: const BoxDecoration(
-        gradient: LinearGradient(colors: [AppColors.darkRed, AppColors.dark]),
-        borderRadius: BorderRadius.vertical(bottom: Radius.circular(28)),
+        gradient: AppColors.bannerGradient,
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
       ),
       child: Row(
         children: [
@@ -100,30 +112,30 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: const EdgeInsets.all(3),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(color: Colors.white.withValues(alpha: 0.4), width: 2),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 2),
             ),
             child: CircleAvatar(
-              radius: 24,
+              radius: 26,
               backgroundColor: Colors.white.withValues(alpha: 0.15),
               child: Text(
                 _username.isNotEmpty ? _username[0].toUpperCase() : (_isStaff ? 'A' : 'P'),
-                style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
               ),
             ),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   _username.isNotEmpty ? 'Hola, $_username' : 'Hola',
-                  style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                  style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold, letterSpacing: 0.5),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 4),
                 Text(
                   _isStaff ? 'Administrador · Avianco Airlines' : 'Bienvenido a Avianco Airlines',
-                  style: const TextStyle(color: Colors.white70, fontSize: 12),
+                  style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 13),
                 ),
               ],
             ),
@@ -136,7 +148,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildDashboard() {
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -162,6 +174,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ModuleCard(title: 'Analíticas', icon: Icons.bar_chart, color: AppColors.primary, onTap: () => _push(const DashboardScreen())),
             ]),
           ],
+          const SizedBox(height: 40),
         ],
       ),
     );
@@ -172,8 +185,8 @@ class _HomeScreenState extends State<HomeScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(bottom: 16),
-          child: Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.dark)),
+          padding: const EdgeInsets.only(bottom: 16, left: 4),
+          child: Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.dark)),
         ),
         GridView.count(
           crossAxisCount: 2,
@@ -194,27 +207,35 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildBottomNav() {
     return Container(
-      margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 20),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.12), blurRadius: 20, offset: const Offset(0, 6))],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 20,
+            offset: const Offset(0, 6),
+          )
+        ],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(24),
         child: BottomNavigationBar(
-          currentIndex: _selectedIndex == 0 ? 0 : _selectedIndex,
+          currentIndex: _selectedIndex,
           type: BottomNavigationBarType.fixed,
           selectedItemColor: AppColors.primary,
           unselectedItemColor: Colors.grey[400],
+          selectedFontSize: 12,
+          unselectedFontSize: 12,
           elevation: 0,
           onTap: (index) => setState(() => _selectedIndex = index),
           items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.home_filled), label: 'Inicio'),
-            BottomNavigationBarItem(icon: Icon(Icons.flight), label: 'Vuelos'),
-            BottomNavigationBarItem(icon: Icon(Icons.book), label: 'Reservas'),
-            BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Pasajeros'),
-            BottomNavigationBarItem(icon: Icon(Icons.map), label: 'Mapa'),
+            BottomNavigationBarItem(icon: Icon(Icons.grid_view_rounded), label: 'Inicio'),
+            BottomNavigationBarItem(icon: Icon(Icons.flight_takeoff), label: 'Vuelos'),
+            BottomNavigationBarItem(icon: Icon(Icons.book_online), label: 'Reservas'),
+            BottomNavigationBarItem(icon: Icon(Icons.people_outline), label: 'Pasajeros'),
+            BottomNavigationBarItem(icon: Icon(Icons.map_outlined), label: 'Mapa'),
           ],
         ),
       ),
