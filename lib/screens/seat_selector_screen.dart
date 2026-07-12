@@ -194,13 +194,15 @@ class _SeatSelectorScreenState extends State<SeatSelectorScreen> {
                               color: Colors.white,
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
+                              letterSpacing: 1.0,
                             ),
                           ),
                           const Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 12),
+                            padding: EdgeInsets.symmetric(horizontal: 14),
                             child: Icon(
                               Icons.flight_takeoff,
                               color: Colors.white70,
+                              size: 20,
                             ),
                           ),
                           Text(
@@ -209,6 +211,7 @@ class _SeatSelectorScreenState extends State<SeatSelectorScreen> {
                               color: Colors.white,
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
+                              letterSpacing: 1.0,
                             ),
                           ),
                         ],
@@ -219,28 +222,38 @@ class _SeatSelectorScreenState extends State<SeatSelectorScreen> {
                         style: const TextStyle(
                           color: Colors.white70,
                           fontSize: 13,
+                          letterSpacing: 0.5,
                         ),
                       ),
-                      const SizedBox(height: 14),
-                      const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          _LegendItem(
-                            color: Colors.white,
-                            border: Colors.grey,
-                            label: 'Disponible',
-                          ),
-                          SizedBox(width: 14),
-                          _LegendItem(
-                            color: AppColors.greyDark,
-                            label: 'Ocupado',
-                          ),
-                          SizedBox(width: 14),
-                          _LegendItem(
-                            color: AppColors.primary,
-                            label: 'Tu asiento',
-                          ),
-                        ],
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            _LegendItem(
+                              color: Colors.white,
+                              border: Colors.grey,
+                              label: 'Disponible',
+                            ),
+                            SizedBox(width: 14),
+                            _LegendItem(
+                              color: AppColors.greyDark,
+                              label: 'Ocupado',
+                            ),
+                            SizedBox(width: 14),
+                            _LegendItem(
+                              color: AppColors.primary,
+                              label: 'Tu asiento',
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
@@ -258,25 +271,68 @@ class _SeatSelectorScreenState extends State<SeatSelectorScreen> {
                           bottom: Radius.circular(40),
                         ),
                         border: Border.all(
-                          color: AppColors.dark.withValues(alpha: 0.15),
-                          width: 2,
+                          color: AppColors.dark.withValues(alpha: 0.12),
+                          width: 1.5,
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.08),
-                            blurRadius: 16,
-                            offset: const Offset(0, 6),
+                            color: Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 20,
+                            offset: const Offset(0, 8),
                           ),
                         ],
                       ),
                       child: Column(
                         children: [
-                          const Icon(
-                            Icons.airplanemode_active,
-                            color: AppColors.primary,
-                            size: 30,
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                width: 8,
+                                height: 4,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[300],
+                                  borderRadius: BorderRadius.circular(2),
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Container(
+                                width: 14,
+                                height: 6,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[400],
+                                  borderRadius: BorderRadius.circular(2),
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Container(
+                                width: 8,
+                                height: 4,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[300],
+                                  borderRadius: BorderRadius.circular(2),
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 6),
+                          const SizedBox(height: 8),
+                          const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.lock_outline, size: 10, color: Colors.grey),
+                              SizedBox(width: 4),
+                              Text(
+                                'CABINA',
+                                style: TextStyle(
+                                  fontSize: 9,
+                                  letterSpacing: 1.5,
+                                  color: Colors.grey,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 14),
                           const Text(
                             'BUSINESS',
                             style: TextStyle(
@@ -487,18 +543,18 @@ class _SeatSelectorScreenState extends State<SeatSelectorScreen> {
     if (!seat.disponible) {
       fondo = AppColors.greyDark;
       borde = AppColors.greyDark;
-      icono = const Icon(Icons.person, size: 14, color: Colors.white54);
+      icono = const Icon(Icons.person, size: 14, color: Colors.white38);
     } else if (selected) {
       fondo = AppColors.primary;
       borde = AppColors.primary;
-      icono = const Icon(Icons.check, size: 16, color: Colors.white);
+      icono = const Icon(Icons.check, size: 14, color: Colors.white);
     } else {
       fondo = Colors.white;
       borde = seat.business ? AppColors.darkRed : Colors.grey.shade400;
     }
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 2.5),
       child: GestureDetector(
         onTap: seat.disponible
             ? () => setState(
@@ -507,17 +563,29 @@ class _SeatSelectorScreenState extends State<SeatSelectorScreen> {
             : null,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
-          width: 30,
-          height: 32,
+          width: 32,
+          height: 34,
           decoration: BoxDecoration(
             color: fondo,
-            borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(9),
-              bottom: Radius.circular(5),
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(8),
+              topRight: Radius.circular(8),
+              bottomLeft: Radius.circular(5),
+              bottomRight: Radius.circular(5),
             ),
+            boxShadow: selected
+                ? [
+                    BoxShadow(
+                      color: AppColors.primary.withValues(alpha: 0.35),
+                      blurRadius: 6,
+                      spreadRadius: 1,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
             border: Border.all(
               color: borde,
-              width: seat.business && seat.disponible && !selected ? 2 : 1,
+              width: seat.business && seat.disponible && !selected ? 2.0 : 1.2,
             ),
           ),
           child: Center(
@@ -525,7 +593,7 @@ class _SeatSelectorScreenState extends State<SeatSelectorScreen> {
                 Text(
                   seat.codigo,
                   style: TextStyle(
-                    fontSize: 7,
+                    fontSize: 7.5,
                     fontWeight: FontWeight.bold,
                     color: seat.business
                         ? AppColors.darkRed
