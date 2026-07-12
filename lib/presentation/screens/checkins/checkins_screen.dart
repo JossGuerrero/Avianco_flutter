@@ -21,139 +21,99 @@ class _CheckinsScreenState extends State<CheckinsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final checkinsData = Provider.of<CheckinsProvider>(context);
-    final checkins = checkinsData.items;
+    final provider = Provider.of<CheckinsProvider>(context);
+    final checkins = provider.items;
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: CustomScrollView(
-        slivers: [
-          _buildAppBar(),
-          checkinsData.isLoading
-              ? const SliverFillRemaining(
-                  child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
-                )
-              : checkins.isEmpty
-                  ? const SliverFillRemaining(
-                      child: Center(child: Text('No hay registros de check-in.')),
-                    )
-                  : SliverPadding(
-                      padding: const EdgeInsets.all(20),
-                      sliver: SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                          (ctx, i) => _buildCheckinCard(checkins[i]),
-                          childCount: checkins.length,
-                        ),
+      appBar: AppBar(
+        title: const Text('Tarjetas de Embarque', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+        backgroundColor: AppColors.primary,
+        elevation: 0,
+        centerTitle: true,
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
+      body: Column(
+        children: [
+          Container(
+            height: 40,
+            decoration: const BoxDecoration(
+              color: AppColors.primary,
+              borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
+            ),
+          ),
+          Expanded(
+            child: provider.isLoading
+                ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+                : checkins.isEmpty
+                    ? const Center(child: Text('Sin registros de check-in', style: TextStyle(color: Colors.grey)))
+                    : ListView.builder(
+                        padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                        physics: const BouncingScrollPhysics(),
+                        itemCount: checkins.length,
+                        itemBuilder: (ctx, i) => _buildCheckinItem(checkins[i]),
                       ),
-                    ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildAppBar() {
-    return SliverAppBar(
-      expandedHeight: 120,
-      floating: true,
-      pinned: true,
-      elevation: 0,
-      backgroundColor: AppColors.primary,
-      flexibleSpace: FlexibleSpaceBar(
-        centerTitle: true,
-        title: const Text(
-          'Confirmación de Check-in',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
-        ),
-        background: Container(
-          decoration: const BoxDecoration(gradient: AppColors.bannerGradient),
-          child: Opacity(
-            opacity: 0.1,
-            child: Icon(Icons.how_to_reg, size: 150, color: Colors.white.withValues(alpha: 0.5)),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCheckinCard(c) {
+  Widget _buildCheckinItem(c) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 20),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 12, offset: const Offset(0, 4)),
-        ],
+        borderRadius: BorderRadius.circular(32),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 15, offset: const Offset(0, 5))],
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: IntrinsicHeight(
-          child: Row(
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Container(
-                width: 6,
-                color: AppColors.success,
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('RESERVA #${c.reservaId}', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: AppColors.dark)),
+                  const SizedBox(height: 4),
+                  Text(c.fechaCheckin.toString().substring(0, 16), style: TextStyle(color: Colors.grey[400], fontSize: 13, fontWeight: FontWeight.w500)),
+                ],
               ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Reserva #${c.reservaId}',
-                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.dark),
-                          ),
-                          _buildStatusBadge(c.estado),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          const Icon(Icons.door_sliding_outlined, size: 16, color: AppColors.greyAccent),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Puerta de embarque: ${c.puerta}',
-                            style: const TextStyle(color: AppColors.greyAccent, fontSize: 14),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          const Icon(Icons.access_time, size: 16, color: AppColors.greyAccent),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Fecha: ${c.fechaCheckin.toString().substring(0, 16)}',
-                            style: const TextStyle(color: AppColors.greyAccent, fontSize: 13),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(color: AppColors.success.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(16)),
+                child: const Icon(Icons.qr_code_2_rounded, color: AppColors.success, size: 32),
               ),
             ],
           ),
-        ),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 24),
+            child: Row(
+              children: List.generate(20, (i) => Expanded(child: Container(height: 1, color: i % 2 == 0 ? Colors.grey[200] : Colors.transparent))),
+            ),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _infoNode('PUERTA', c.puerta),
+              _infoNode('ESTADO', c.estado.toUpperCase(), isSuccess: true),
+            ],
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildStatusBadge(String estado) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: AppColors.success.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        estado.toUpperCase(),
-        style: const TextStyle(color: AppColors.success, fontWeight: FontWeight.bold, fontSize: 10),
-      ),
+  Widget _infoNode(String label, String value, {bool isSuccess = false}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(color: Colors.grey, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1)),
+        const SizedBox(height: 6),
+        Text(value, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: isSuccess ? AppColors.success : AppColors.dark)),
+      ],
     );
   }
 }

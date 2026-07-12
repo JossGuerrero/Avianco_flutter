@@ -29,163 +29,108 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
     });
   }
 
-  Color _estadoColor(String estado) {
-    switch (estado.toLowerCase()) {
-      case 'pagada':
-        return AppColors.success;
-      case 'pendiente':
-        return Colors.orange;
-      case 'anulada':
-        return AppColors.primary;
-      default:
-        return AppColors.greyAccent;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(),
-        slivers: [
-          _buildAppBar(),
-          _loading
-              ? const SliverFillRemaining(
-                  child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
-                )
-              : _items.isEmpty
-                  ? const SliverFillRemaining(
-                      child: Center(child: Text('No hay facturas registradas')),
-                    )
-                  : SliverPadding(
-                      padding: const EdgeInsets.all(20),
-                      sliver: SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                          (ctx, i) => _buildInvoiceCard(_items[i]),
-                          childCount: _items.length,
-                        ),
-                      ),
-                    ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAppBar() {
-    return SliverAppBar(
-      expandedHeight: 120,
-      floating: true,
-      pinned: true,
-      elevation: 0,
-      backgroundColor: AppColors.primary,
-      flexibleSpace: FlexibleSpaceBar(
+      appBar: AppBar(
+        title: const Text('Historial de Facturación', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+        backgroundColor: AppColors.primary,
+        elevation: 0,
         centerTitle: true,
-        title: const Text(
-          'Historial de Facturas',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
-        ),
-        background: Container(
-          decoration: const BoxDecoration(gradient: AppColors.bannerGradient),
-          child: Opacity(
-            opacity: 0.1,
-            child: Icon(Icons.receipt_long, size: 150, color: Colors.white.withValues(alpha: 0.5)),
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
+      body: Column(
+        children: [
+          Container(
+            height: 40,
+            decoration: const BoxDecoration(
+              color: AppColors.primary,
+              borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
+            ),
           ),
-        ),
+          Expanded(
+            child: _loading
+                ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+                : _items.isEmpty
+                    ? const Center(child: Text('No se encontraron facturas', style: TextStyle(color: Colors.grey)))
+                    : ListView.builder(
+                        padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                        physics: const BouncingScrollPhysics(),
+                        itemCount: _items.length,
+                        itemBuilder: (ctx, i) => _buildInvoiceCard(_items[i]),
+                      ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildInvoiceCard(item) {
-    final estado = (item['estado'] ?? '').toString();
-    final total = item['total'] ?? '0.00';
-    final impuestos = item['impuestos'] ?? '0.00';
+    final estado = (item['estado'] ?? '').toString().toLowerCase();
+    Color statusCol = estado == 'pagada' ? AppColors.success : (estado == 'anulada' ? AppColors.primary : Colors.orange);
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 12, offset: const Offset(0, 4)),
-        ],
+        borderRadius: BorderRadius.circular(32),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 15, offset: const Offset(0, 5))],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            Row(
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(24),
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Factura #${item['id']}',
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.dark),
-                    ),
+                    Text('FACTURA #${item['id']}', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: AppColors.dark, letterSpacing: -0.5)),
                     const SizedBox(height: 4),
-                    Text(
-                      'Reserva ID: ${item['reserva']}',
-                      style: TextStyle(color: Colors.grey[600], fontSize: 12),
-                    ),
+                    Text('Emisión: ${item['fecha_emision'].toString().split('T').first}', style: TextStyle(color: Colors.grey[400], fontSize: 12, fontWeight: FontWeight.w600)),
                   ],
                 ),
-                _buildStatusBadge(estado),
+                _statusChip(estado, statusCol),
               ],
             ),
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 16),
-              child: Divider(height: 1, color: Color(0xFFF0F0F0)),
+          ),
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.03),
+              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
             ),
-            Row(
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'IMPUESTOS',
-                      style: TextStyle(color: Colors.grey[400], fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.5),
-                    ),
-                    const SizedBox(height: 4),
-                    Text('\$$impuestos', style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.dark)),
-                  ],
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      'TOTAL A PAGAR',
-                      style: TextStyle(color: Colors.grey[400], fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.5),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '\$$total',
-                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: AppColors.primary),
-                    ),
-                  ],
-                ),
+                _amountNode('IVA (15%)', '\$${item['impuestos']}'),
+                _amountNode('TOTAL', '\$${item['total']}', isBold: true),
               ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildStatusBadge(String estado) {
-    final color = _estadoColor(estado);
+  Widget _statusChip(String text, Color col) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Text(
-        estado.toUpperCase(),
-        style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 10, letterSpacing: 0.5),
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      decoration: BoxDecoration(color: col.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(14)),
+      child: Text(text.toUpperCase(), style: TextStyle(color: col, fontWeight: FontWeight.w900, fontSize: 10, letterSpacing: 0.5)),
+    );
+  }
+
+  Widget _amountNode(String label, String val, {bool isBold = false}) {
+    return Column(
+      crossAxisAlignment: isBold ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(color: Colors.grey, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.8)),
+        const SizedBox(height: 6),
+        Text(val, style: TextStyle(fontWeight: isBold ? FontWeight.w900 : FontWeight.bold, fontSize: isBold ? 24 : 16, color: isBold ? AppColors.primary : AppColors.dark)),
+      ],
     );
   }
 }

@@ -21,10 +21,10 @@ class _SeatsScreenState extends State<SeatsScreen> {
     _load();
   }
 
-  Future<void> _load({String search = ''}) async {
+  Future<void> _load() async {
     setState(() => _loading = true);
     _isStaff = await AuthService.isStaff();
-    final data = await ApiService.getAsientos(search: search);
+    final data = await ApiService.getAsientos();
     if (!mounted) return;
     setState(() {
       _items = data;
@@ -32,178 +32,89 @@ class _SeatsScreenState extends State<SeatsScreen> {
     });
   }
 
-  Future<void> _showForm() async {
-    final codigoCtrl = TextEditingController();
-    final filaCtrl = TextEditingController();
-    final columnaCtrl = TextEditingController();
-    final vueloCtrl = TextEditingController();
-    final disponibleCtrl = TextEditingController(text: 'true');
-    final formKey = GlobalKey<FormState>();
-
-    await showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: const Text('Nuevo Asiento', style: TextStyle(fontWeight: FontWeight.bold)),
-        content: Form(
-          key: formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _buildFormField(codigoCtrl, 'Código (ej: 12A)', Icons.qr_code),
-                _buildFormField(filaCtrl, 'Fila', Icons.format_list_numbered, type: TextInputType.number),
-                _buildFormField(columnaCtrl, 'Columna (ej: A)', Icons.view_column),
-                _buildFormField(vueloCtrl, 'ID Vuelo', Icons.flight, type: TextInputType.number),
-                _buildFormField(disponibleCtrl, 'Disponible (true/false)', Icons.event_seat),
-              ],
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancelar', style: TextStyle(color: Colors.grey))),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
-            onPressed: () async {
-              if (!formKey.currentState!.validate()) return;
-              final data = {
-                'codigo': codigoCtrl.text,
-                'fila': int.tryParse(filaCtrl.text) ?? 0,
-                'columna': columnaCtrl.text,
-                'vuelo': int.tryParse(vueloCtrl.text) ?? 0,
-                'disponible': disponibleCtrl.text.toLowerCase() == 'true',
-              };
-              final ok = await ApiService.createAsiento(data);
-              if (!ctx.mounted) return;
-              Navigator.pop(ctx);
-              if (ok) {
-                await _load();
-                if (!mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Asiento creado exitosamente')));
-              }
-            },
-            child: const Text('Crear', style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFormField(TextEditingController ctrl, String label, IconData icon, {TextInputType type = TextInputType.text}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: TextFormField(
-        controller: ctrl,
-        keyboardType: type,
-        decoration: InputDecoration(
-          labelText: label,
-          prefixIcon: Icon(icon, color: AppColors.primary, size: 20),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
-          filled: true,
-          fillColor: Colors.grey[50],
-        ),
-        validator: (v) => v == null || v.isEmpty ? 'Requerido' : null,
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: CustomScrollView(
-        slivers: [
-          _buildAppBar(),
-          _loading
-              ? const SliverFillRemaining(child: Center(child: CircularProgressIndicator(color: AppColors.primary)))
-              : _items.isEmpty
-                  ? const SliverFillRemaining(child: Center(child: Text('No hay asientos registrados')))
-                  : SliverPadding(
-                      padding: const EdgeInsets.all(20),
-                      sliver: SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                          (ctx, i) => _buildSeatCard(_items[i]),
-                          childCount: _items.length,
-                        ),
+      appBar: AppBar(
+        title: const Text('Distribución de Asientos', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+        backgroundColor: AppColors.primary,
+        elevation: 0,
+        centerTitle: true,
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
+      body: Column(
+        children: [
+          Container(
+            height: 40,
+            decoration: const BoxDecoration(
+              color: AppColors.primary,
+              borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
+            ),
+          ),
+          Expanded(
+            child: _loading
+                ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+                : _items.isEmpty
+                    ? const Center(child: Text('Sin registros de asientos', style: TextStyle(color: Colors.grey)))
+                    : ListView.builder(
+                        padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                        physics: const BouncingScrollPhysics(),
+                        itemCount: _items.length,
+                        itemBuilder: (ctx, i) => _buildSeatCard(_items[i]),
                       ),
-                    ),
+          ),
         ],
       ),
-      floatingActionButton: _isStaff
-          ? FloatingActionButton(
-              backgroundColor: AppColors.primary,
-              onPressed: _showForm,
-              child: const Icon(Icons.add, color: Colors.white),
-            )
-          : null,
-    );
-  }
-
-  Widget _buildAppBar() {
-    return SliverAppBar(
-      expandedHeight: 120,
-      floating: true,
-      pinned: true,
-      elevation: 0,
-      backgroundColor: AppColors.primary,
-      flexibleSpace: FlexibleSpaceBar(
-        centerTitle: true,
-        title: const Text('Gestión de Asientos', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
-        background: Container(
-          decoration: const BoxDecoration(gradient: AppColors.bannerGradient),
-          child: Opacity(
-            opacity: 0.1,
-            child: Icon(Icons.event_seat, size: 150, color: Colors.white.withValues(alpha: 0.5)),
-          ),
-        ),
-      ),
+      floatingActionButton: _isStaff ? _buildFAB() : null,
     );
   }
 
   Widget _buildSeatCard(item) {
-    final bool disponible = item['disponible'] == true;
+    final bool disp = item['disponible'] == true;
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 12, offset: const Offset(0, 4))],
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10, offset: const Offset(0, 4))],
       ),
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        contentPadding: const EdgeInsets.all(20),
         leading: Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: (disponible ? AppColors.success : AppColors.primary).withValues(alpha: 0.1),
+            color: (disp ? AppColors.success : AppColors.primary).withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(16),
           ),
-          child: Icon(
-            Icons.event_seat,
-            color: disponible ? AppColors.success : AppColors.primary,
-            size: 24,
-          ),
+          child: Icon(Icons.event_seat, color: disp ? AppColors.success : AppColors.primary, size: 28),
         ),
-        title: Text('Asiento ${item['codigo']}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.dark)),
-        subtitle: Text('Fila ${item['fila']} · Columna ${item['columna']}', style: const TextStyle(color: AppColors.greyAccent, fontSize: 13)),
+        title: Text('Asiento ${item['codigo']}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppColors.dark)),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Text('FILA: ${item['fila']} · COLUMNA: ${item['columna']}', style: const TextStyle(color: Colors.grey, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+        ),
         trailing: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           decoration: BoxDecoration(
-            color: (disponible ? AppColors.success : AppColors.primary).withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(8),
+            color: (disp ? AppColors.success : AppColors.primary).withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(12),
           ),
           child: Text(
-            disponible ? 'Disponible' : 'Ocupado',
-            style: TextStyle(
-              color: disponible ? AppColors.success : AppColors.primary,
-              fontWeight: FontWeight.bold,
-              fontSize: 11,
-            ),
+            disp ? 'LIBRE' : 'OCUPADO',
+            style: TextStyle(color: disp ? AppColors.success : AppColors.primary, fontWeight: FontWeight.w900, fontSize: 10),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildFAB() {
+    return FloatingActionButton(
+      backgroundColor: AppColors.primary,
+      onPressed: () {},
+      elevation: 4,
+      child: const Icon(Icons.add, color: Colors.white),
     );
   }
 }

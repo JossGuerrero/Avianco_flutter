@@ -23,52 +23,73 @@ class _PassengersScreenState extends State<PassengersScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final pasajerosData = Provider.of<PasajerosProvider>(context);
-    final pasajeros = pasajerosData.items;
+    final provider = Provider.of<PasajerosProvider>(context);
+    final pasajeros = provider.items;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Pasajeros', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        backgroundColor: AppColors.primary,
-        elevation: 0,
-      ),
-      body: Column(
+    return Container(
+      color: AppColors.background,
+      child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(24),
             child: TextField(
               controller: _searchCtrl,
+              onChanged: (val) => provider.fetchPasajeros(search: val),
               decoration: InputDecoration(
                 hintText: 'Buscar pasajero...',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                prefixIcon: const Icon(Icons.search, color: AppColors.primary),
                 filled: true,
                 fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: const EdgeInsets.symmetric(vertical: 16),
               ),
-              onChanged: (val) => pasajerosData.fetchPasajeros(search: val),
             ),
           ),
           Expanded(
-            child: pasajerosData.isLoading
+            child: provider.isLoading
                 ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
                 : pasajeros.isEmpty
-                    ? const Center(child: Text('No se encontraron pasajeros.'))
+                    ? const Center(child: Text('No se encontraron pasajeros', style: TextStyle(color: Colors.grey)))
                     : ListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                        physics: const BouncingScrollPhysics(),
                         itemCount: pasajeros.length,
                         itemBuilder: (ctx, i) {
                           final p = pasajeros[i];
-                          return Card(
-                            margin: const EdgeInsets.only(bottom: 12),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 16),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(24),
+                              boxShadow: [
+                                BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 15, offset: const Offset(0, 5)),
+                              ],
+                            ),
                             child: ListTile(
-                              leading: const CircleAvatar(
-                                backgroundColor: AppColors.dark,
-                                child: Icon(Icons.person, color: Colors.white),
+                              contentPadding: const EdgeInsets.all(16),
+                              leading: CircleAvatar(
+                                radius: 28,
+                                backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                                child: Text(
+                                  p.nombre[0].toUpperCase(),
+                                  style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 18),
+                                ),
                               ),
-                              title: Text('${p.nombre} ${p.apellido}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                              subtitle: Text('Doc: ${p.documentoIdentidad}'),
-                              trailing: const Icon(Icons.info_outline, color: AppColors.primary),
+                              title: Text(
+                                '${p.nombre} ${p.apellido}',
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.dark),
+                              ),
+                              subtitle: Padding(
+                                padding: const EdgeInsets.only(top: 4),
+                                child: Text(
+                                  'DOCUMENTO: ${p.documentoIdentidad}',
+                                  style: const TextStyle(color: Colors.grey, fontSize: 11, fontWeight: FontWeight.w600),
+                                ),
+                              ),
+                              trailing: const Icon(Icons.chevron_right, color: Colors.grey, size: 20),
                             ),
                           );
                         },
