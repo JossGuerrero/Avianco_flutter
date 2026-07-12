@@ -9,13 +9,47 @@ import 'services/auth_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final loggedIn = await AuthService.isLoggedIn();
-  runApp(AviancoApp(initialRoute: loggedIn ? '/home' : '/'));
+  try {
+    await dotenv.load(fileName: ".env");
+  } catch (e) {
+    // Usar valores por defecto si no hay .env
+  }
+
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => VuelosProvider()),
+        ChangeNotifierProvider(create: (_) => AeronavesProvider()),
+        ChangeNotifierProvider(create: (_) => ReservasProvider()),
+        ChangeNotifierProvider(create: (_) => PasajerosProvider()),
+        ChangeNotifierProvider(create: (_) => AeropuertosProvider()),
+        ChangeNotifierProvider(create: (_) => PromocionesProvider()),
+        ChangeNotifierProvider(create: (_) => DashboardProvider()),
+        ChangeNotifierProvider(create: (_) => CheckinsProvider()),
+        ChangeNotifierProvider(create: (_) => TripulacionProvider()),
+        ChangeNotifierProvider(create: (_) => ServiciosProvider()),
+      ],
+      child: const AviancoApp(),
+    ),
+  );
 }
 
-class AviancoApp extends StatelessWidget {
-  final String initialRoute;
-  const AviancoApp({super.key, required this.initialRoute});
+class AviancoApp extends StatefulWidget {
+  const AviancoApp({super.key});
+
+  @override
+  State<AviancoApp> createState() => _AviancoAppState();
+}
+
+class _AviancoAppState extends State<AviancoApp> {
+  late Future<void> _loginFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _loginFuture = Provider.of<AuthProvider>(context, listen: false).tryAutoLogin();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,14 +86,5 @@ class AviancoApp extends StatelessWidget {
         '/home': (context) => const HomeScreen(),
       },
     );
-  }
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const AviancoApp(initialRoute: '/');
   }
 }
