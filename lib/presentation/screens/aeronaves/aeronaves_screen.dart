@@ -11,8 +11,6 @@ class AircraftsScreen extends StatefulWidget {
 }
 
 class _AircraftsScreenState extends State<AircraftsScreen> {
-  final _searchCtrl = TextEditingController();
-
   @override
   void initState() {
     super.initState();
@@ -23,100 +21,34 @@ class _AircraftsScreenState extends State<AircraftsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final aeronavesData = Provider.of<AeronavesProvider>(context);
-    final aeronaves = aeronavesData.items;
+    final provider = Provider.of<AeronavesProvider>(context);
+    final aeronaves = provider.items;
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: CustomScrollView(
-        slivers: [
-          _buildAppBar(),
-          _buildSearchBar(aeronavesData),
-          aeronavesData.isLoading
-              ? const SliverFillRemaining(
-                  child: Center(
-                    child: CircularProgressIndicator(color: AppColors.primary),
-                  ),
-                )
-              : aeronaves.isEmpty
-                  ? const SliverFillRemaining(
-                      child: Center(
-                        child: Text('No hay aeronaves registradas'),
+    return Container(
+      color: AppColors.background,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Padding(
+            padding: EdgeInsets.fromLTRB(24, 24, 24, 16),
+            child: Text(
+              'Gestión de Flota',
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: AppColors.dark, letterSpacing: -0.5),
+            ),
+          ),
+          Expanded(
+            child: provider.isLoading
+                ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+                : aeronaves.isEmpty
+                    ? const Center(child: Text('No hay aeronaves registradas', style: TextStyle(color: Colors.grey)))
+                    : ListView.builder(
+                        padding: const EdgeInsets.fromLTRB(24, 0, 24, 140),
+                        physics: const BouncingScrollPhysics(),
+                        itemCount: aeronaves.length,
+                        itemBuilder: (ctx, i) => _buildAircraftCard(aeronaves[i]),
                       ),
-                    )
-                  : SliverPadding(
-                      padding: const EdgeInsets.all(20),
-                      sliver: SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                          (ctx, i) => _buildAircraftCard(aeronaves[i]),
-                          childCount: aeronaves.length,
-                        ),
-                      ),
-                    ),
+          ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildAppBar() {
-    return SliverAppBar(
-      expandedHeight: 120,
-      floating: true,
-      pinned: true,
-      elevation: 0,
-      backgroundColor: AppColors.primary,
-      flexibleSpace: FlexibleSpaceBar(
-        centerTitle: true,
-        title: const Text(
-          'Aeronaves',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
-        ),
-        background: Container(
-          decoration: const BoxDecoration(
-            gradient: AppColors.bannerGradient,
-          ),
-          child: Opacity(
-            opacity: 0.1,
-            child: Icon(
-              Icons.airplanemode_active,
-              size: 150,
-              color: Colors.white.withValues(alpha: 0.5),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSearchBar(AeronavesProvider provider) {
-    return SliverToBoxAdapter(
-      child: Container(
-        margin: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: TextField(
-          controller: _searchCtrl,
-          onChanged: (val) => provider.fetchAeronaves(search: val),
-          decoration: const InputDecoration(
-            hintText: 'Buscar matrícula o modelo...',
-            border: InputBorder.none,
-            icon: Icon(Icons.search, color: AppColors.primary),
-          ),
-        ),
       ),
     );
   }
@@ -126,106 +58,68 @@ class _AircraftsScreenState extends State<AircraftsScreen> {
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(32),
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 15, offset: const Offset(0, 8)),
         ],
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
-        child: Stack(
-          children: [
-            Positioned(
-              right: -20,
-              bottom: -20,
-              child: Icon(
-                Icons.airplanemode_active,
-                size: 100,
-                color: AppColors.primary.withValues(alpha: 0.03),
-              ),
+      child: Stack(
+        children: [
+          Positioned(
+            right: -20,
+            bottom: -20,
+            child: Icon(
+              Icons.airplanemode_active,
+              size: 120,
+              color: AppColors.primary.withValues(alpha: 0.03),
             ),
-            Padding(
-              padding: const EdgeInsets.all(24),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: const Icon(
-                      Icons.airplanemode_active,
-                      color: AppColors.primary,
-                      size: 28,
-                    ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(24),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(20),
                   ),
-                  const SizedBox(width: 20),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          a.modelo,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.dark,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Matrícula: ${a.matricula}',
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 13,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
+                  child: const Icon(Icons.airplanemode_active, color: AppColors.primary, size: 32),
+                ),
+                const SizedBox(width: 20),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.success.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          '${a.capacidad} pax',
-                          style: const TextStyle(
-                            color: AppColors.success,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
                       Text(
-                        a.estado.toUpperCase(),
-                        style: const TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w900,
-                          color: AppColors.greyAccent,
-                          letterSpacing: 0.5,
-                        ),
+                        a.modelo,
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppColors.dark),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'MATRÍCULA: ${a.matricula}',
+                        style: const TextStyle(color: Colors.grey, fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 0.5),
                       ),
                     ],
                   ),
-                ],
-              ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      '${a.capacidad}',
+                      style: const TextStyle(fontWeight: FontWeight.w900, color: AppColors.primary, fontSize: 20),
+                    ),
+                    const Text(
+                      'PASAJEROS',
+                      style: TextStyle(color: Colors.grey, fontSize: 8, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
