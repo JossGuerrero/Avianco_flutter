@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:video_player/video_player.dart';
 import '../config/app_colors.dart';
 import '../services/auth_service.dart';
 
@@ -14,6 +15,45 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passCtrl = TextEditingController();
   bool _loading = false;
   String? _error;
+
+  // Video de fondo: avión despegando (Pexels). Si falla, cae a la imagen.
+  static const _videoUrl =
+      'https://videos.pexels.com/video-files/1851190/1851190-uhd_2560_1440_25fps.mp4';
+  VideoPlayerController? _videoCtrl;
+  bool _videoReady = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initVideo();
+  }
+
+  Future<void> _initVideo() async {
+    try {
+      final ctrl = VideoPlayerController.networkUrl(Uri.parse(_videoUrl));
+      await ctrl.initialize();
+      await ctrl.setLooping(true);
+      await ctrl.setVolume(0);
+      await ctrl.play();
+      if (!mounted) {
+        ctrl.dispose();
+        return;
+      }
+      setState(() {
+        _videoCtrl = ctrl;
+        _videoReady = true;
+      });
+    } catch (e) {
+      // Sin soporte de video (p.ej. Windows) o sin red: queda la imagen
+      debugPrint('Video de fondo no disponible: $e');
+    }
+  }
+
+  @override
+  void dispose() {
+    _videoCtrl?.dispose();
+    super.dispose();
+  }
 
   Future<void> _login() async {
     setState(() {
@@ -54,15 +94,43 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [AppColors.primary, AppColors.dark],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          // Fondo: video del avión despegando; mientras carga (o si falla),
+          // panorámica de Quito; y si esa falla, el gradiente.
+          if (_videoReady && _videoCtrl != null)
+            FittedBox(
+              fit: BoxFit.cover,
+              clipBehavior: Clip.hardEdge,
+              child: SizedBox(
+                width: _videoCtrl!.value.size.width,
+                height: _videoCtrl!.value.size.height,
+                child: VideoPlayer(_videoCtrl!),
+              ),
+            )
+          else
+            Image.network(
+              'https://images.unsplash.com/photo-1531968455001-5c5272a41129?w=1200',
+              fit: BoxFit.cover,
+              errorBuilder: (_, e, s) => const DecoratedBox(
+                decoration: BoxDecoration(gradient: AppColors.mainGradient),
+              ),
+            ),
+          // Overlay rojo-negro para legibilidad del formulario
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.primary.withValues(alpha: 0.80),
+                  AppColors.dark.withValues(alpha: 0.94),
+                ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+            ),
           ),
-        ),
-        child: SafeArea(
+          SafeArea(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
             child: ConstrainedBox(
@@ -196,7 +264,8 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
           ),
-        ),
+          ),
+        ],
       ),
     );
   }

@@ -104,11 +104,10 @@ class _CountryPickerSheetState extends State<_CountryPickerSheet> {
       initialChildSize: 0.75,
       minChildSize: 0.4,
       maxChildSize: 0.95,
-      builder: (ctx, scrollCtrl) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
+      builder: (ctx, scrollCtrl) => Material(
+        color: Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        clipBehavior: Clip.antiAlias,
         child: Column(
           children: [
             Container(

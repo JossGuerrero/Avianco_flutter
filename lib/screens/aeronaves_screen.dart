@@ -19,6 +19,14 @@ class _AircraftsScreenState extends State<AircraftsScreen> {
 
   static const _blue = AppColors.darkAlt;
 
+  // Fotos de aviones de stock (fallback cuando la aeronave no tiene foto)
+  static const _avionImgs = [
+    'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=400',
+    'https://images.unsplash.com/photo-1569154941061-e231b4725ef1?w=400',
+    'https://images.unsplash.com/photo-1474302770737-173ee21bab63?w=400',
+    'https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=400',
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -414,31 +422,24 @@ class _AircraftsScreenState extends State<AircraftsScreen> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: ListTile(
-                            leading: Api.mediaUrl(a['foto']) != null
-                                ? ClipRRect(
-                                    borderRadius: BorderRadius.circular(10),
-                                    child: Image.network(
-                                      Api.mediaUrl(a['foto'])!,
-                                      width: 52,
-                                      height: 52,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (_, e, s) =>
-                                          const CircleAvatar(
-                                        backgroundColor: _blue,
-                                        child: Icon(
-                                          Icons.airplanemode_active,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                    ),
-                                  )
-                                : const CircleAvatar(
-                                    backgroundColor: _blue,
-                                    child: Icon(
-                                      Icons.airplanemode_active,
-                                      color: Colors.white,
-                                    ),
+                            leading: ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: Image.network(
+                                Api.mediaUrl(a['foto']) ??
+                                    _avionImgs[((a['id'] ?? i) as int) %
+                                        _avionImgs.length],
+                                width: 52,
+                                height: 52,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, e, s) => const CircleAvatar(
+                                  backgroundColor: _blue,
+                                  child: Icon(
+                                    Icons.airplanemode_active,
+                                    color: Colors.white,
                                   ),
+                                ),
+                              ),
+                            ),
                             title: Text(
                               a['modelo'] ?? '—',
                               style: const TextStyle(

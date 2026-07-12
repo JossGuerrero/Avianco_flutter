@@ -72,11 +72,10 @@ class _FlightsScreenState extends State<FlightsScreen> {
         initialChildSize: 0.6,
         minChildSize: 0.35,
         maxChildSize: 0.9,
-        builder: (ctx, scrollCtrl) => Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-          ),
+        builder: (ctx, scrollCtrl) => Material(
+          color: Colors.white,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          clipBehavior: Clip.antiAlias,
           child: FutureBuilder<List<List<dynamic>>>(
             future: Future.wait([
               ApiService.getEscalasPorVuelo(v['id']),

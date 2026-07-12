@@ -83,11 +83,11 @@ class _HomeScreenState extends State<HomeScreen> {
         constraints: BoxConstraints(
           maxHeight: MediaQuery.of(ctx).size.height * 0.7,
         ),
-        decoration: const BoxDecoration(
+        child: Material(
           color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: Column(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          clipBehavior: Clip.antiAlias,
+          child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
@@ -175,6 +175,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 12),
           ],
+          ),
         ),
       ),
     );

@@ -21,6 +21,14 @@ class _AirportsScreenState extends State<AirportsScreen> {
 
   static const _purple = AppColors.darkAlt;
 
+  // Fotos de stock por IATA (fallback cuando el aeropuerto no tiene foto)
+  static const Map<String, String> _airportImgs = {
+    'UIO': 'https://images.unsplash.com/photo-1531968455001-5c5272a41129?w=400',
+    'GYE': 'https://images.unsplash.com/photo-1444723121867-7a241cacace9?w=400',
+    'BOG': 'https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=400',
+    'LIM': 'https://images.unsplash.com/photo-1526392060635-9d6019884377?w=400',
+  };
+
   @override
   void initState() {
     super.initState();
@@ -493,11 +501,14 @@ class _AirportsScreenState extends State<AirportsScreen> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: ListTile(
-                          leading: Api.mediaUrl(a['foto']) != null
+                          leading: (Api.mediaUrl(a['foto']) ??
+                                      _airportImgs[a['codigo_iata']]) !=
+                                  null
                               ? ClipRRect(
                                   borderRadius: BorderRadius.circular(10),
                                   child: Image.network(
-                                    Api.mediaUrl(a['foto'])!,
+                                    (Api.mediaUrl(a['foto']) ??
+                                        _airportImgs[a['codigo_iata']])!,
                                     width: 52,
                                     height: 52,
                                     fit: BoxFit.cover,

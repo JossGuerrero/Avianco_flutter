@@ -1,8 +1,6 @@
 class Api {
-  static const String baseUrl = 'http://192.168.100.9:8000/api';
+  static const String baseUrl = 'https://jguerrer.me/api';
 
-  /// Convierte una ruta de imagen del backend (/media/...) en URL absoluta.
-  /// Devuelve null si no hay foto.
   static String? mediaUrl(dynamic path) {
     if (path == null) return null;
     final p = path.toString();

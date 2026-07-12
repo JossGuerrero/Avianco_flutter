@@ -19,24 +19,48 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
   static const _purple = AppColors.primary;
   static const _darkPurple = AppColors.dark;
 
-  // Imágenes reales de ciudades por código IATA
+  // Imágenes reales de ciudades por código IATA (URLs verificadas)
   static const Map<String, String> _cityImages = {
-    'UIO': 'https://images.unsplash.com/photo-1531968455001-5c5272a41129?w=600',
-    'GYE': 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600',
-    'BOG': 'https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=600',
-    'LIM': 'https://images.unsplash.com/photo-1526392060635-9d6019884377?w=600',
-    'EZE': 'https://images.unsplash.com/photo-1589909202802-8f4aadce1849?w=600',
-    'MIA': 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600',
-    'MAD': 'https://images.unsplash.com/photo-1543783207-ec64e4d95325?w=600',
-    'CUN': 'https://images.unsplash.com/photo-1510097467424-192d713fd8b2?w=600',
-    'SCL': 'https://images.unsplash.com/photo-1478827387698-1527781a4887?w=600',
-    'JFK': 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=600',
+    'UIO': 'https://images.unsplash.com/photo-1531968455001-5c5272a41129?w=800',
+    'GYE': 'https://images.unsplash.com/photo-1444723121867-7a241cacace9?w=800',
+    'CUE': 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=800',
+    'OSO': 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=800',
+    'MEC': 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800',
+    'BOG': 'https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=800',
+    'LIM': 'https://images.unsplash.com/photo-1526392060635-9d6019884377?w=800',
+    'EZE': 'https://images.unsplash.com/photo-1589909202802-8f4aadce1849?w=800',
+    'MIA': 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800',
+    'MAD': 'https://images.unsplash.com/photo-1543783207-ec64e4d95325?w=800',
+    'CUN': 'https://images.unsplash.com/photo-1510097467424-192d713fd8b2?w=800',
+    'SCL': 'https://images.unsplash.com/photo-1478827387698-1527781a4887?w=800',
+    'JFK': 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=800',
+  };
+
+  // Fallback por nombre de ciudad (para aeropuertos con IATA no estándar)
+  static const Map<String, String> _cityByName = {
+    'quito':
+        'https://images.unsplash.com/photo-1531968455001-5c5272a41129?w=800',
+    'guayaquil':
+        'https://images.unsplash.com/photo-1444723121867-7a241cacace9?w=800',
+    'cuenca':
+        'https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=800',
+    'manta':
+        'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800',
+    'bogotá':
+        'https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=800',
+    'bogota':
+        'https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=800',
+    'lima':
+        'https://images.unsplash.com/photo-1526392060635-9d6019884377?w=800',
   };
 
   static const _defaultImage =
-      'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=600';
+      'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=800';
 
-  String _imageFor(String? iata) => _cityImages[iata] ?? _defaultImage;
+  String _imageFor(String? iata, [String? ciudad]) =>
+      _cityImages[iata] ??
+      _cityByName[(ciudad ?? '').toLowerCase().trim()] ??
+      _defaultImage;
 
   @override
   void initState() {
@@ -480,7 +504,10 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> {
                                             child: Stack(
                                               children: [
                                                 Image.network(
-                                                  _imageFor(destinoIata),
+                                                  _imageFor(
+                                                    destinoIata,
+                                                    destinoCiudad.toString(),
+                                                  ),
                                                   height: 160,
                                                   width: double.infinity,
                                                   fit: BoxFit.cover,
