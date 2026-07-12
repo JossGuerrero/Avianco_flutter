@@ -25,35 +25,116 @@ class _AirportsScreenState extends State<AirportsScreen> {
     final aeropuertos = aeropuertosData.items;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Aeropuertos', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        backgroundColor: AppColors.primary,
-        elevation: 0,
-      ),
-      body: aeropuertosData.isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
-          : aeropuertos.isEmpty
-              ? const Center(child: Text('No hay aeropuertos disponibles.'))
-              : ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: aeropuertos.length,
-                  itemBuilder: (ctx, i) {
-                    final a = aeropuertos[i];
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      child: ListTile(
-                        leading: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
-                          child: const Icon(Icons.location_on, color: AppColors.primary),
+      backgroundColor: AppColors.background,
+      body: CustomScrollView(
+        slivers: [
+          _buildAppBar(),
+          aeropuertosData.isLoading
+              ? const SliverFillRemaining(child: Center(child: CircularProgressIndicator(color: AppColors.primary)))
+              : aeropuertos.isEmpty
+                  ? const SliverFillRemaining(child: Center(child: Text('No hay aeropuertos disponibles')))
+                  : SliverPadding(
+                      padding: const EdgeInsets.all(20),
+                      sliver: SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                          (ctx, i) => _buildAirportCard(aeropuertos[i]),
+                          childCount: aeropuertos.length,
                         ),
-                        title: Text(a.nombre, style: const TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Text('${a.codigoIata} · ${a.ciudad}, ${a.pais}'),
                       ),
-                    );
-                  },
+                    ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAppBar() {
+    return SliverAppBar(
+      expandedHeight: 120,
+      floating: true,
+      pinned: true,
+      elevation: 0,
+      backgroundColor: AppColors.primary,
+      flexibleSpace: FlexibleSpaceBar(
+        centerTitle: true,
+        title: const Text('Aeropuertos', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+        background: Container(
+          decoration: const BoxDecoration(
+            gradient: AppColors.bannerGradient,
+          ),
+          child: Opacity(
+            opacity: 0.1,
+            child: Icon(Icons.map, size: 150, color: Colors.white.withValues(alpha: 0.5)),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAirportCard(a) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 12, offset: const Offset(0, 4)),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: IntrinsicHeight(
+          child: Row(
+            children: [
+              Container(
+                width: 6,
+                color: AppColors.primary,
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              a.nombre,
+                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.dark),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              a.codigoIata,
+                              style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w900, fontSize: 12),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          const Icon(Icons.location_on, size: 14, color: AppColors.greyAccent),
+                          const SizedBox(width: 4),
+                          Text('${a.ciudad}, ${a.pais}', style: const TextStyle(color: AppColors.greyAccent, fontSize: 13)),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
