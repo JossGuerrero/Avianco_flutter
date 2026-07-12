@@ -6,6 +6,7 @@ import 'package:avianco/presentation/screens/home/public_home_screen.dart';
 import 'package:avianco/presentation/screens/auth/login_screen.dart';
 import 'package:avianco/presentation/screens/auth/register_screen.dart';
 import 'package:avianco/presentation/screens/admin/home_screen.dart';
+import 'package:avianco/presentation/screens/pasajeros/profile_screen.dart';
 import 'package:avianco/presentation/providers/auth_provider.dart';
 import 'package:avianco/presentation/providers/vuelos_provider.dart';
 import 'package:avianco/presentation/providers/aeronaves_provider.dart';
@@ -106,9 +107,11 @@ class _AviancoAppState extends State<AviancoApp> {
                         : const PublicHomeScreen(),
               ),
         routes: {
+          '/public': (ctx) => const PublicHomeScreen(),
           '/login': (ctx) => const LoginScreen(),
           '/register': (ctx) => const RegisterScreen(),
           '/home': (ctx) => const HomeScreen(),
+          '/profile': (ctx) => const ProfileScreen(),
         },
       ),
     );

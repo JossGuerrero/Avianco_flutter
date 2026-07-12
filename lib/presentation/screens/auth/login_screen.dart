@@ -16,24 +16,17 @@ class _LoginScreenState extends State<LoginScreen> {
   String? _error;
 
   Future<void> _login() async {
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
+    setState(() { _loading = true; _error = null; });
     try {
       final data = await AuthService.login(_userCtrl.text, _passCtrl.text);
       if (data['access'] != null) {
         await AuthService.saveToken(
-          data['access'],
-          data['refresh'],
-          data['is_staff'] ?? false,
-          userId: data['user_id'],
-          username: data['username'],
-          email: data['email'],
+          data['access'], data['refresh'], data['is_staff'] ?? false,
+          userId: data['user_id'], username: data['username'], email: data['email'],
         );
         if (mounted) Navigator.pushReplacementNamed(context, '/home');
       } else {
-        setState(() => _error = 'Usuario o contraseña incorrectos');
+        setState(() => _error = 'Credenciales incorrectas');
       }
     } catch (e) {
       setState(() => _error = 'Error de conexión');
@@ -44,115 +37,112 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [AppColors.primary, AppColors.dark],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+      body: Stack(
+        children: [
+          // Imagen de fondo profesional
+          Container(
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: NetworkImage('https://images.unsplash.com/photo-1544016768-982d1554f0b9?w=1000&q=80'),
+                fit: BoxFit.cover,
+              ),
+            ),
           ),
-        ),
-        child: SafeArea(
-          child: Center(
+          // Overlay de color degradado
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [AppColors.dark.withValues(alpha: 0.8), AppColors.primary.withValues(alpha: 0.6)],
+                begin: Alignment.bottomCenter,
+                end: Alignment.topCenter,
+              ),
+            ),
+          ),
+          SafeArea(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.symmetric(horizontal: 32),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.airplanemode_active, size: 80, color: Colors.white),
+                  const SizedBox(height: 60),
+                  const Icon(Icons.airplanemode_active, size: 60, color: Colors.white),
+                  const SizedBox(height: 24),
+                  const Text('Bienvenido\na bordo', style: TextStyle(fontSize: 40, fontWeight: FontWeight.w900, color: Colors.white, height: 1.1)),
                   const SizedBox(height: 8),
-                  const Text(
-                    'avianco',
-                    style: TextStyle(
-                      fontSize: 40,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      letterSpacing: 4,
-                    ),
-                  ),
-                  const Text(
-                    'Sistema de Vuelos',
-                    style: TextStyle(color: Colors.white70, fontSize: 14),
-                  ),
-                  const SizedBox(height: 48),
-                  _buildField(_userCtrl, 'Usuario', Icons.person_outline),
-                  const SizedBox(height: 16),
-                  _buildField(_passCtrl, 'Contraseña', Icons.lock_outline, obscure: true),
+                  const Text('Inicia sesión para continuar tu viaje', style: TextStyle(color: Colors.white70, fontSize: 16)),
+                  const SizedBox(height: 60),
+                  _buildInput(_userCtrl, 'Usuario', Icons.person_outline),
+                  const SizedBox(height: 20),
+                  _buildInput(_passCtrl, 'Contraseña', Icons.lock_outline, isPass: true),
                   if (_error != null) _buildError(),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 40),
                   _buildSubmit(),
-                  const SizedBox(height: 24),
-                  TextButton(
-                    onPressed: () => Navigator.pushNamed(context, '/register'),
-                    child: RichText(
-                      text: const TextSpan(
-                        text: '¿No tienes cuenta? ',
-                        style: TextStyle(color: Colors.white70),
-                        children: [
-                          TextSpan(
-                            text: 'Regístrate',
-                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, decoration: TextDecoration.underline),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                  const SizedBox(height: 32),
+                  _buildRegisterLink(),
                 ],
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInput(TextEditingController ctrl, String label, IconData icon, {bool isPass = false}) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+      ),
+      child: TextField(
+        controller: ctrl,
+        obscureText: isPass,
+        style: const TextStyle(color: Colors.white),
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: const TextStyle(color: Colors.white60),
+          prefixIcon: Icon(icon, color: Colors.white70),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(vertical: 18),
         ),
       ),
     );
   }
 
-  Widget _buildField(TextEditingController ctrl, String label, IconData icon, {bool obscure = false}) {
-    return TextField(
-      controller: ctrl,
-      obscureText: obscure,
-      style: const TextStyle(color: Colors.white),
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: const TextStyle(color: Colors.white70),
-        prefixIcon: Icon(icon, color: Colors.white70),
-        enabledBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: Colors.white38),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: Colors.white, width: 2),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        filled: true,
-        fillColor: Colors.white.withValues(alpha: 0.1),
-      ),
-    );
-  }
+  Widget _buildError() => Padding(
+    padding: const EdgeInsets.only(top: 15),
+    child: Text(_error!, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+  );
 
-  Widget _buildError() {
-    return Padding(
-      padding: const EdgeInsets.only(top: 12),
-      child: Text(_error!, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-    );
-  }
-
-  Widget _buildSubmit() {
-    return SizedBox(
-      width: double.infinity,
-      height: 52,
-      child: ElevatedButton(
-        onPressed: _loading ? null : _login,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        ),
-        child: _loading
-            ? const CircularProgressIndicator(color: AppColors.primary)
-            : const Text(
-                'Ingresar',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.dark),
-              ),
+  Widget _buildSubmit() => SizedBox(
+    width: double.infinity,
+    height: 60,
+    child: ElevatedButton(
+      onPressed: _loading ? null : _login,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        elevation: 0,
       ),
-    );
-  }
+      child: _loading
+        ? const CircularProgressIndicator(color: AppColors.primary)
+        : const Text('INGRESAR', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: AppColors.dark)),
+    ),
+  );
+
+  Widget _buildRegisterLink() => Center(
+    child: TextButton(
+      onPressed: () => Navigator.pushNamed(context, '/register'),
+      child: RichText(
+        text: const TextSpan(
+          text: '¿No tienes cuenta? ',
+          style: TextStyle(color: Colors.white70),
+          children: [
+            TextSpan(text: 'Regístrate aquí', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, decoration: TextDecoration.underline)),
+          ],
+        ),
+      ),
+    ),
+  );
 }
