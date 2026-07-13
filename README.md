@@ -1,65 +1,44 @@
-# Avianco - Sistema de Gestión de Vuelos (Flutter)
+# Avianco - App Móvil Flutter
 
-Aplicación móvil moderna desarrollada con Flutter que consume una API REST en Django. El sistema implementa una arquitectura limpia, manejo de estado con Provider y un diseño de alta fidelidad basado en la identidad visual de Avianco.
+Aplicación móvil desarrollada en **Flutter** que consume una API REST en **Django** para la gestión de una aerolínea. Incluye parte pública sin autenticación y parte privada (admin) protegida con **JWT** y control de acceso por roles.
+
+## Tecnologías
+* **Flutter 3.x / Dart**
+* **API REST:** Django REST Framework (desplegada en Railway)
+* **Autenticación:** JWT (SimpleJWT)
+* **Persistencia de sesión:** shared_preferences
+* **HTTP:** paquete http
 
 ## Requisitos
-* Flutter SDK: 3.12.x o superior.
-* Dart: 3.x.
-* Dispositivo: Emulador Android (API 28+) o dispositivo físico con depuración USB.
-* Internet: Necesario para el consumo de la API y carga de imágenes dinámicas.
+* Flutter SDK 3.x instalado
+* VS Code con extensión Flutter
+* Dispositivo Android físico o emulador (API 26+)
+* Conexión a internet
 
-## Instalación y Configuración
-
-1. Clonar el proyecto:
+## Instalación
+1. **Clonar el repositorio:**
    ```bash
    git clone https://github.com/JossGuerrero/avianco-flutter.git
    cd avianco-flutter
    ```
 
-2. Configurar Variables de Entorno:
-   Crea un archivo llamado .env en la raíz del proyecto y añade la URL de la API:
-   ```env
-   API_BASE_URL=http://10.0.2.2:8000/api
-   ```
-   *(Usa 10.0.2.2 si usas emulador Android o la IP de tu servidor si es producción).*
-
-3. Instalar dependencias:
+2. **Instalar dependencias:**
    ```bash
    flutter pub get
    ```
 
-4. Ejecutar la aplicación:
+3. **Ejecutar la app:**
    ```bash
    flutter run
    ```
 
-## Autenticación y API
-La aplicación utiliza JWT (JSON Web Tokens) para proteger la sección privada.
-* Login: Los tokens access y refresh se almacenan de forma persistente usando shared_preferences.
-* Seguridad: Todas las peticiones a módulos administrativos adjuntan el token en el header Authorization: Bearer <token>.
-* URL Base de la API: Definida dinámicamente en lib/core/api.dart mediante el archivo .env.
+## Configuración de la URL base
+La URL de la API se configura en `lib/core/api.dart`.
 
-## Credenciales de Prueba
-Para evaluar el control de acceso por roles, se pueden usar las siguientes cuentas:
-
-| Rol | Usuario | Contraseña | Acceso |
-| :--- | :--- | :--- | :--- |
-| **Administrador** | admin | admin123 | Acceso total a analíticas, flota, tripulación y gestión. |
-| **Cliente** | viajero1 | pass123 | Solo vista pública, reservas personales y facturación. |
-
-## Comandos Útiles
-* flutter clean: Limpiar caché de compilación.
-* flutter pub run build_runner build: Generar modelos (si aplica).
-* flutter build apk --split-per-abi: Generar instalador para Android.
-
-## Arquitectura del Proyecto
-Se sigue un patrón de Clean Architecture adaptado a Flutter:
-* Core: Configuración global, constantes y utilidades de la API.
-* Domain: Modelos de datos y entidades de negocio.
-* Data/Services: Comunicación directa con el backend y persistencia local.
-* Presentation: UI (Screens y Widgets) y lógica de estado (Providers).
+## API Backend
+* **URL:** https://jguerrer.me/api/
+* **Repositorio backend:** https://github.com/JossGuerrero/Avianco
+* **Health check público:** https://jguerrer.me/api/health/
 
 ---
-**Desarrollado por:** Jossue Guerrero, Aliyha Mazsorra, Karla Rosales  
-**Backend:** [Repositorio Django](https://github.com/JossGuerrero/Avianco)
-**Health check público:** https://jguerrer.me/api/health/
+**Desarrollado por:** Jossue Guerrero, Aliyha Mazsorra, Karla Rosales
