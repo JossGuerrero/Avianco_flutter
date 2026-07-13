@@ -14,6 +14,7 @@ import 'flights_screen.dart';
 import 'facturas_screen.dart';
 import 'passengers_screen.dart';
 import 'promociones_screen.dart';
+import 'metodos_pago_screen.dart';
 import 'reservations_screen.dart';
 import 'servicios_screen.dart';
 import 'tripulacion_screen.dart';
@@ -88,93 +89,93 @@ class _HomeScreenState extends State<HomeScreen> {
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           clipBehavior: Clip.antiAlias,
           child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 40,
-              height: 4,
-              margin: const EdgeInsets.only(top: 10, bottom: 6),
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const Padding(
-              padding: EdgeInsets.all(12),
-              child: Text(
-                'Notificaciones',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.dark,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(top: 10, bottom: 6),
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
                 ),
               ),
-            ),
-            Flexible(
-              child: _notifs.isEmpty
-                  ? const Padding(
-                      padding: EdgeInsets.all(32),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.notifications_off,
-                            size: 56,
-                            color: Colors.grey,
-                          ),
-                          SizedBox(height: 8),
-                          Text(
-                            'No tienes notificaciones',
-                            style: TextStyle(color: Colors.grey),
-                          ),
-                        ],
+              const Padding(
+                padding: EdgeInsets.all(12),
+                child: Text(
+                  'Notificaciones',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.dark,
+                  ),
+                ),
+              ),
+              Flexible(
+                child: _notifs.isEmpty
+                    ? const Padding(
+                        padding: EdgeInsets.all(32),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.notifications_off,
+                              size: 56,
+                              color: Colors.grey,
+                            ),
+                            SizedBox(height: 8),
+                            Text(
+                              'No tienes notificaciones',
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                          ],
+                        ),
+                      )
+                    : ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: _notifs.length,
+                        itemBuilder: (ctx, i) {
+                          final n = _notifs[i];
+                          final leida = n['leida'] == true;
+                          return ListTile(
+                            leading: CircleAvatar(
+                              backgroundColor: leida
+                                  ? Colors.grey[300]
+                                  : AppColors.primary,
+                              child: Icon(
+                                Icons.notifications,
+                                color: leida ? Colors.grey : Colors.white,
+                                size: 20,
+                              ),
+                            ),
+                            title: Text(
+                              (n['titulo'] ?? 'Notificación').toString(),
+                              style: TextStyle(
+                                fontWeight: leida
+                                    ? FontWeight.normal
+                                    : FontWeight.bold,
+                              ),
+                            ),
+                            subtitle: Text(
+                              (n['mensaje'] ?? '').toString(),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            onTap: leida
+                                ? null
+                                : () async {
+                                    await ApiService.marcarNotificacionLeida(
+                                      n['id'],
+                                    );
+                                    if (ctx.mounted) Navigator.pop(ctx);
+                                    _loadRole();
+                                  },
+                          );
+                        },
                       ),
-                    )
-                  : ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: _notifs.length,
-                      itemBuilder: (ctx, i) {
-                        final n = _notifs[i];
-                        final leida = n['leida'] == true;
-                        return ListTile(
-                          leading: CircleAvatar(
-                            backgroundColor: leida
-                                ? Colors.grey[300]
-                                : AppColors.primary,
-                            child: Icon(
-                              Icons.notifications,
-                              color: leida ? Colors.grey : Colors.white,
-                              size: 20,
-                            ),
-                          ),
-                          title: Text(
-                            (n['titulo'] ?? 'Notificación').toString(),
-                            style: TextStyle(
-                              fontWeight: leida
-                                  ? FontWeight.normal
-                                  : FontWeight.bold,
-                            ),
-                          ),
-                          subtitle: Text(
-                            (n['mensaje'] ?? '').toString(),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          onTap: leida
-                              ? null
-                              : () async {
-                                  await ApiService.marcarNotificacionLeida(
-                                    n['id'],
-                                  );
-                                  if (ctx.mounted) Navigator.pop(ctx);
-                                  _loadRole();
-                                },
-                        );
-                      },
-                    ),
-            ),
-            const SizedBox(height: 12),
-          ],
+              ),
+              const SizedBox(height: 12),
+            ],
           ),
         ),
       ),
@@ -212,9 +213,9 @@ class _HomeScreenState extends State<HomeScreen> {
           crossAxisCount: 2,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
-          childAspectRatio: 1.45,
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
+          childAspectRatio: 1.6,
           children: cards,
         ),
       ],
@@ -226,6 +227,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         flexibleSpace: Container(
           decoration: const BoxDecoration(gradient: AppColors.mainGradient),
         ),
@@ -284,17 +286,23 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: Column(
         children: [
-          // ---- Header con saludo ----
+          // ---- Header con saludo, avatar (foto) y acceso al perfil ----
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
+            margin: const EdgeInsets.fromLTRB(20, 14, 20, 4),
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
                 colors: [AppColors.darkRed, AppColors.dark],
               ),
-              borderRadius: BorderRadius.vertical(
-                bottom: Radius.circular(28),
-              ),
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.dark.withValues(alpha: 0.25),
+                  blurRadius: 18,
+                  offset: const Offset(0, 8),
+                ),
+              ],
             ),
             child: Row(
               children: [
@@ -304,32 +312,32 @@ class _HomeScreenState extends State<HomeScreen> {
                     MaterialPageRoute(builder: (_) => const ProfileScreen()),
                   ),
                   child: Container(
-                  padding: const EdgeInsets.all(3),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.4),
-                      width: 2,
+                    padding: const EdgeInsets.all(3),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.4),
+                        width: 2,
+                      ),
                     ),
-                  ),
-                  child: CircleAvatar(
-                    radius: 24,
-                    backgroundColor: Colors.white.withValues(alpha: 0.15),
-                    backgroundImage:
-                        _fotoUrl != null ? NetworkImage(_fotoUrl!) : null,
-                    child: _fotoUrl != null
-                        ? null
-                        : Text(
-                            _username.isNotEmpty
-                                ? _username[0].toUpperCase()
-                                : (_isStaff ? 'A' : 'P'),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
+                    child: CircleAvatar(
+                      radius: 24,
+                      backgroundColor: Colors.white.withValues(alpha: 0.15),
+                      backgroundImage:
+                          _fotoUrl != null ? NetworkImage(_fotoUrl!) : null,
+                      child: _fotoUrl != null
+                          ? null
+                          : Text(
+                              _username.isNotEmpty
+                                  ? _username[0].toUpperCase()
+                                  : (_isStaff ? 'A' : 'P'),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          ),
-                  ),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 14),
@@ -445,6 +453,13 @@ class _HomeScreenState extends State<HomeScreen> {
                               icon: Icons.event_seat,
                               color: AppColors.greyDark,
                               onTap: () => _push(const SeatsScreen()),
+                            ),
+                            ModuleCard(
+                              title: 'Métodos de pago',
+                              icon: Icons.credit_card,
+                              color: AppColors.primary,
+                              onTap: () =>
+                                  _push(const PaymentMethodsScreen()),
                             ),
                           ]),
                       ],

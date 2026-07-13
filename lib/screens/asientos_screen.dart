@@ -161,12 +161,13 @@ class _SeatsScreenState extends State<SeatsScreen> {
                 Navigator.pop(ctx);
                 if (ok) {
                   await _load();
-                  if (!mounted) return;
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  if (!ctx.mounted) return;
+                  ScaffoldMessenger.of(ctx).showSnackBar(
                     const SnackBar(content: Text('Asiento creado')),
                   );
                 } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  if (!ctx.mounted) return;
+                  ScaffoldMessenger.of(ctx).showSnackBar(
                     const SnackBar(
                       content: Text('Error al crear asiento'),
                       backgroundColor: AppColors.primary,
@@ -174,10 +175,7 @@ class _SeatsScreenState extends State<SeatsScreen> {
                   );
                 }
               },
-              child: const Text(
-                'Crear',
-                style: TextStyle(color: Colors.white),
-              ),
+              child: const Text('Crear', style: TextStyle(color: Colors.white)),
             ),
           ],
         ),
@@ -229,7 +227,7 @@ class _SeatsScreenState extends State<SeatsScreen> {
               child: ListView.separated(
                 padding: const EdgeInsets.all(16),
                 itemCount: _items.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 12),
+                separatorBuilder: (_, _) => const SizedBox(height: 12),
                 itemBuilder: (context, index) {
                   final item = _items[index];
                   final codigo = item['codigo'] ?? '';

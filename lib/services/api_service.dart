@@ -492,6 +492,25 @@ class ApiService {
     return [];
   }
 
+  /// Último mensaje de error devuelto por el backend (para mostrarlo en UI).
+  static String lastError = '';
+
+  static String _extraerError(int status, String body) {
+    if (status == 403) return 'Sin permiso (requiere staff)';
+    try {
+      final decoded = jsonDecode(body);
+      if (decoded is Map && decoded.isNotEmpty) {
+        final e = decoded.entries.first;
+        final v = e.value;
+        final msg = v is List && v.isNotEmpty ? v.first.toString() : v.toString();
+        return '${e.key}: $msg';
+      }
+    } catch (_) {
+      // Cuerpo no JSON: se devuelve recortado
+    }
+    return body.length > 120 ? body.substring(0, 120) : body;
+  }
+
   static Future<bool> createPromocion(Map<String, dynamic> data) async {
     final headers = await _headers();
     final response = await http.post(
@@ -499,7 +518,10 @@ class ApiService {
       headers: headers,
       body: jsonEncode(data),
     );
-    return response.statusCode == 201;
+    debugPrint('createPromocion [${response.statusCode}]: ${response.body}');
+    if (response.statusCode == 201) return true;
+    lastError = _extraerError(response.statusCode, response.body);
+    return false;
   }
 
   static Future<bool> updatePromocion(int id, Map<String, dynamic> data) async {
@@ -509,7 +531,10 @@ class ApiService {
       headers: headers,
       body: jsonEncode(data),
     );
-    return response.statusCode == 200;
+    debugPrint('updatePromocion [${response.statusCode}]: ${response.body}');
+    if (response.statusCode == 200) return true;
+    lastError = _extraerError(response.statusCode, response.body);
+    return false;
   }
 
   static Future<bool> deletePromocion(int id) async {
@@ -618,6 +643,44 @@ class ApiService {
       debugPrint('getMetodosPago error: $e');
     }
     return [];
+  }
+
+  static Future<bool> createMetodoPago(Map<String, dynamic> data) async {
+    final headers = await _headers();
+    final response = await http.post(
+      Uri.parse('${Api.baseUrl}/metodos-pago/'),
+      headers: headers,
+      body: jsonEncode(data),
+    );
+    debugPrint('createMetodoPago [${response.statusCode}]: ${response.body}');
+    if (response.statusCode == 201) return true;
+    lastError = _extraerError(response.statusCode, response.body);
+    return false;
+  }
+
+  static Future<bool> updateMetodoPago(
+    int id,
+    Map<String, dynamic> data,
+  ) async {
+    final headers = await _headers();
+    final response = await http.patch(
+      Uri.parse('${Api.baseUrl}/metodos-pago/$id/'),
+      headers: headers,
+      body: jsonEncode(data),
+    );
+    debugPrint('updateMetodoPago [${response.statusCode}]: ${response.body}');
+    if (response.statusCode == 200) return true;
+    lastError = _extraerError(response.statusCode, response.body);
+    return false;
+  }
+
+  static Future<bool> deleteMetodoPago(int id) async {
+    final headers = await _headers();
+    final response = await http.delete(
+      Uri.parse('${Api.baseUrl}/metodos-pago/$id/'),
+      headers: headers,
+    );
+    return response.statusCode == 204;
   }
 
   static Future<List<dynamic>> getMetodosPagoActivos() async {

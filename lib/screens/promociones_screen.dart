@@ -81,11 +81,26 @@ class _PromotionsScreenState extends State<PromotionsScreen> {
     final descuentoCtrl = TextEditingController(
       text: promocion?['descuento']?.toString() ?? '',
     );
+    final hoy = DateTime.now().toIso8601String().split('T').first;
+    final fechaInicioCtrl = TextEditingController(
+      text: promocion?['fecha_inicio'] ?? hoy,
+    );
     final fechaFinCtrl = TextEditingController(
       text: promocion?['fecha_fin'] ?? '',
     );
     bool activa = promocion?['activa'] ?? true;
     final formKey = GlobalKey<FormState>();
+
+    Future<void> pickFecha(TextEditingController ctrl) async {
+      final actual = DateTime.tryParse(ctrl.text) ?? DateTime.now();
+      final d = await showDatePicker(
+        context: context,
+        initialDate: actual,
+        firstDate: DateTime(2024),
+        lastDate: DateTime(2030),
+      );
+      if (d != null) ctrl.text = d.toIso8601String().split('T').first;
+    }
 
     await showDialog(
       context: context,
@@ -143,11 +158,35 @@ class _PromotionsScreenState extends State<PromotionsScreen> {
                     validator: (v) =>
                         v == null || v.isEmpty ? 'Requerido' : null,
                   ),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: fechaInicioCtrl,
+                    readOnly: true,
+                    decoration: const InputDecoration(
+                      labelText: 'Fecha inicio',
+                      suffixIcon: Icon(
+                        Icons.calendar_today,
+                        size: 18,
+                        color: _blue,
+                      ),
+                    ),
+                    onTap: () => pickFecha(fechaInicioCtrl),
+                    validator: (v) =>
+                        v == null || v.isEmpty ? 'Requerido' : null,
+                  ),
+                  const SizedBox(height: 8),
                   TextFormField(
                     controller: fechaFinCtrl,
+                    readOnly: true,
                     decoration: const InputDecoration(
-                      labelText: 'Fecha fin (2026-12-31)',
+                      labelText: 'Fecha fin',
+                      suffixIcon: Icon(
+                        Icons.event,
+                        size: 18,
+                        color: _blue,
+                      ),
                     ),
+                    onTap: () => pickFecha(fechaFinCtrl),
                     validator: (v) =>
                         v == null || v.isEmpty ? 'Requerido' : null,
                   ),
@@ -183,6 +222,7 @@ class _PromotionsScreenState extends State<PromotionsScreen> {
                   'codigo': codigoCtrl.text.toUpperCase(),
                   'descripcion': descripcionCtrl.text,
                   'descuento': int.tryParse(descuentoCtrl.text) ?? 0,
+                  'fecha_inicio': fechaInicioCtrl.text,
                   'fecha_fin': fechaFinCtrl.text,
                   'activa': activa,
                 };
@@ -197,6 +237,7 @@ class _PromotionsScreenState extends State<PromotionsScreen> {
                 }
                 if (!ctx.mounted) return;
                 Navigator.pop(ctx);
+                if (!mounted) return;
                 if (ok) {
                   _load();
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -204,9 +245,14 @@ class _PromotionsScreenState extends State<PromotionsScreen> {
                   );
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Error al guardar'),
+                    SnackBar(
+                      content: Text(
+                        ApiService.lastError.isNotEmpty
+                            ? 'Error: ${ApiService.lastError}'
+                            : 'Error al guardar',
+                      ),
                       backgroundColor: Colors.red,
+                      duration: const Duration(seconds: 5),
                     ),
                   );
                 }
@@ -252,7 +298,7 @@ class _PromotionsScreenState extends State<PromotionsScreen> {
               child: ListView.separated(
                 padding: const EdgeInsets.all(16),
                 itemCount: _items.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 12),
+                separatorBuilder: (_, _) => const SizedBox(height: 12),
                 itemBuilder: (context, index) {
                   final item = _items[index];
                   final activa = item['activa'] == true;

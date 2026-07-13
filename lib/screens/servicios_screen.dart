@@ -59,7 +59,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
     return ListView.separated(
       padding: const EdgeInsets.all(16),
       itemCount: _items.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 12),
+      separatorBuilder: (_, _) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
         final item = _items[index];
         final name = item['nombre'] ?? item['name'] ?? '';

@@ -455,11 +455,11 @@ class _FlightsScreenState extends State<FlightsScreen> {
                 Navigator.pop(ctx);
                 if (ok) {
                   _load();
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  ScaffoldMessenger.of(ctx).showSnackBar(
                     const SnackBar(content: Text('Guardado exitosamente')),
                   );
                 } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  ScaffoldMessenger.of(ctx).showSnackBar(
                     const SnackBar(
                       content: Text('Error al guardar'),
                       backgroundColor: AppColors.primary,
@@ -546,7 +546,7 @@ class _FlightsScreenState extends State<FlightsScreen> {
               : ListView.separated(
                   padding: const EdgeInsets.all(12),
                   itemCount: _vuelos.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 8),
+                  separatorBuilder: (_, _) => const SizedBox(height: 8),
                   itemBuilder: (ctx, i) {
                     final v = _vuelos[i];
                     final origen =

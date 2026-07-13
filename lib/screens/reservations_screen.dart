@@ -207,11 +207,11 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
                 Navigator.pop(ctx);
                 if (ok) {
                   _load();
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  ScaffoldMessenger.of(ctx).showSnackBar(
                     const SnackBar(content: Text('Guardado exitosamente')),
                   );
                 } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  ScaffoldMessenger.of(ctx).showSnackBar(
                     const SnackBar(
                       content: Text('Error al guardar'),
                       backgroundColor: AppColors.primary,
@@ -324,7 +324,7 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
               : ListView.separated(
                   padding: const EdgeInsets.all(12),
                   itemCount: _reservas.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 8),
+                  separatorBuilder: (_, _) => const SizedBox(height: 8),
                   itemBuilder: (ctx, i) {
                     final r = _reservas[i];
                     return Card(

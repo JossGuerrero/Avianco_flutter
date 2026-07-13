@@ -234,11 +234,11 @@ class _CrewScreenState extends State<CrewScreen> {
                 Navigator.pop(ctx);
                 if (ok) {
                   _load();
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  ScaffoldMessenger.of(ctx).showSnackBar(
                     const SnackBar(content: Text('Guardado exitosamente')),
                   );
                 } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  ScaffoldMessenger.of(ctx).showSnackBar(
                     const SnackBar(
                       content: Text('Error al guardar'),
                       backgroundColor: Colors.red,
@@ -347,7 +347,7 @@ class _CrewScreenState extends State<CrewScreen> {
                     child: ListView.separated(
                       padding: const EdgeInsets.all(12),
                       itemCount: _tripulacion.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 8),
+                      separatorBuilder: (_, _) => const SizedBox(height: 8),
                       itemBuilder: (ctx, i) {
                         final t = _tripulacion[i];
                         final activo = t['activo'] == true;

@@ -3,6 +3,7 @@ import '../config/app_colors.dart';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
 import '../widgets/country_picker.dart';
+import '../widgets/fecha_field.dart';
 
 /// Checkout: resumen del vuelo + pasajero + método de pago + pago encadenado
 /// (reserva → pago → factura → asiento ocupado → pantalla de éxito).
@@ -159,8 +160,20 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 const SizedBox(height: 10),
                 TextFormField(
                   controller: nacimientoCtrl,
+                  readOnly: true,
                   decoration: const InputDecoration(
-                    labelText: 'Nacimiento (1990-05-15)',
+                    labelText: 'Fecha de nacimiento',
+                    suffixIcon: Icon(
+                      Icons.calendar_today,
+                      size: 18,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  onTap: () => seleccionarFecha(
+                    ctx,
+                    nacimientoCtrl,
+                    inicial: DateTime(1995),
+                    ultimo: DateTime.now(),
                   ),
                   validator: (v) =>
                       v == null || v.isEmpty ? 'Requerido' : null,

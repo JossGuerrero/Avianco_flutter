@@ -97,8 +97,6 @@ class _LoginScreenState extends State<LoginScreen> {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // Fondo: video del avión despegando; mientras carga (o si falla),
-          // panorámica de Quito; y si esa falla, el gradiente.
           if (_videoReady && _videoCtrl != null)
             FittedBox(
               fit: BoxFit.cover,
@@ -111,19 +109,18 @@ class _LoginScreenState extends State<LoginScreen> {
             )
           else
             Image.network(
-              'https://images.unsplash.com/photo-1531968455001-5c5272a41129?w=1200',
+              'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1200',
               fit: BoxFit.cover,
-              errorBuilder: (_, e, s) => const DecoratedBox(
+              errorBuilder: (_, _, _) => const DecoratedBox(
                 decoration: BoxDecoration(gradient: AppColors.mainGradient),
               ),
             ),
-          // Overlay rojo-negro para legibilidad del formulario
           Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  AppColors.primary.withValues(alpha: 0.80),
-                  AppColors.dark.withValues(alpha: 0.94),
+                  AppColors.primary.withValues(alpha: 0.82),
+                  AppColors.dark.withValues(alpha: 0.88),
                 ],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
@@ -131,139 +128,153 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
           SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                minHeight: MediaQuery.of(context).size.height - 100,
-              ),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const SizedBox(height: 60),
+                  const SizedBox(height: 20),
                   const Icon(
                     Icons.airplanemode_active,
-                    size: 80,
+                    size: 72,
                     color: Colors.white,
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 16),
                   const Text(
                     'avianco',
                     style: TextStyle(
-                      fontSize: 40,
+                      fontSize: 38,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                       letterSpacing: 4,
                     ),
                   ),
+                  const SizedBox(height: 6),
                   const Text(
-                    'Sistema de Vuelos',
-                    style: TextStyle(color: Colors.white70, fontSize: 14),
-                  ),
-                  const SizedBox(height: 48),
-                  TextField(
-                    controller: _userCtrl,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: InputDecoration(
-                      labelText: 'Usuario',
-                      labelStyle: const TextStyle(color: Colors.white70),
-                      prefixIcon: const Icon(
-                        Icons.person_outline,
-                        color: Colors.white54,
-                        size: 20,
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(color: Colors.white38),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(color: Colors.white),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
+                    'Tu plataforma de vuelos inteligente',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 15,
+                      height: 1.4,
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: _passCtrl,
-                    obscureText: true,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: InputDecoration(
-                      labelText: 'Contraseña',
-                      labelStyle: const TextStyle(color: Colors.white70),
-                      prefixIcon: const Icon(
-                        Icons.lock_outline,
-                        color: Colors.white54,
-                        size: 20,
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(color: Colors.white38),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(color: Colors.white),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                    ),
-                  ),
-                  if (_error != null) ...[
-                    const SizedBox(height: 12),
-                    Text(
-                      _error!,
-                      style: const TextStyle(color: Color(0xFFFFCDD2)),
-                    ),
-                  ],
-                  const SizedBox(height: 24),
-                  SizedBox(
+                  const SizedBox(height: 38),
+                  Container(
                     width: double.infinity,
-                    height: 54,
-                    child: ElevatedButton(
-                      onPressed: _loading ? null : _login,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.14),
+                      borderRadius: BorderRadius.circular(28),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.12),
                       ),
-                      child: _loading
-                          ? const CircularProgressIndicator(
-                              color: AppColors.primary,
-                            )
-                          : const Text(
-                              'Ingresar',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.dark,
-                              ),
-                            ),
                     ),
-                  ),
-                  const SizedBox(height: 20),
-                  TextButton(
-                    onPressed: () =>
-                        Navigator.pushReplacementNamed(context, '/register'),
-                    child: RichText(
-                      text: const TextSpan(
-                        text: '¿No tienes cuenta? ',
-                        style: TextStyle(color: Colors.white70),
-                        children: [
-                          TextSpan(
-                            text: 'Regístrate',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              decoration: TextDecoration.underline,
-                              decorationColor: Colors.white,
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Bienvenido de nuevo',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Ingresa con tu cuenta y gestiona vuelos, reservas y pasajeros con estilo.',
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 14,
+                            height: 1.45,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        TextField(
+                          controller: _userCtrl,
+                          style: const TextStyle(color: Colors.white),
+                          decoration: InputDecoration(
+                            labelText: 'Usuario',
+                            prefixIcon: const Icon(
+                              Icons.person_outline,
+                              color: Colors.white70,
+                              size: 22,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        TextField(
+                          controller: _passCtrl,
+                          obscureText: true,
+                          style: const TextStyle(color: Colors.white),
+                          decoration: InputDecoration(
+                            labelText: 'Contraseña',
+                            prefixIcon: const Icon(
+                              Icons.lock_outline,
+                              color: Colors.white70,
+                              size: 22,
+                            ),
+                          ),
+                        ),
+                        if (_error != null) ...[
+                          const SizedBox(height: 16),
+                          Text(
+                            _error!,
+                            style: const TextStyle(
+                              color: Color(0xFFFFCDD2),
+                              fontSize: 13,
                             ),
                           ),
                         ],
-                      ),
+                        const SizedBox(height: 20),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 54,
+                          child: ElevatedButton(
+                            onPressed: _loading ? null : _login,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              foregroundColor: AppColors.dark,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(18),
+                              ),
+                            ),
+                            child: _loading
+                                ? const CircularProgressIndicator(
+                                    color: AppColors.primary,
+                                  )
+                                : const Text(
+                                    'Ingresar',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Center(
+                          child: TextButton(
+                            onPressed: () => Navigator.pushReplacementNamed(
+                              context,
+                              '/register',
+                            ),
+                            child: const Text(
+                              '¿No tienes cuenta? Regístrate',
+                              style: TextStyle(
+                                color: Colors.white70,
+                                decoration: TextDecoration.underline,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
+                  const SizedBox(height: 32),
                 ],
               ),
             ),
-          ),
           ),
         ],
       ),

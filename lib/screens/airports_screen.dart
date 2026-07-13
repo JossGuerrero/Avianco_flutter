@@ -407,11 +407,11 @@ class _AirportsScreenState extends State<AirportsScreen> {
               Navigator.pop(ctx);
               if (ok) {
                 _load();
-                ScaffoldMessenger.of(context).showSnackBar(
+                ScaffoldMessenger.of(ctx).showSnackBar(
                   const SnackBar(content: Text('Guardado exitosamente')),
                 );
               } else {
-                ScaffoldMessenger.of(context).showSnackBar(
+                ScaffoldMessenger.of(ctx).showSnackBar(
                   const SnackBar(
                     content: Text('Error al guardar'),
                     backgroundColor: Colors.red,
@@ -492,7 +492,7 @@ class _AirportsScreenState extends State<AirportsScreen> {
                   child: ListView.separated(
                     padding: const EdgeInsets.all(12),
                     itemCount: _aeropuertos.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 8),
+                    separatorBuilder: (_, _) => const SizedBox(height: 8),
                     itemBuilder: (ctx, i) {
                       final a = _aeropuertos[i];
                       return Card(

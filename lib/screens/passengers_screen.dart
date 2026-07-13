@@ -3,6 +3,7 @@ import '../config/app_colors.dart';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
 import '../widgets/country_picker.dart';
+import '../widgets/fecha_field.dart';
 
 class PassengersScreen extends StatefulWidget {
   const PassengersScreen({super.key});
@@ -173,8 +174,20 @@ class _PassengersScreenState extends State<PassengersScreen> {
                 ),
                 TextFormField(
                   controller: nacimientoCtrl,
+                  readOnly: true,
                   decoration: const InputDecoration(
-                    labelText: 'Nacimiento (1990-05-15)',
+                    labelText: 'Fecha de nacimiento',
+                    suffixIcon: Icon(
+                      Icons.calendar_today,
+                      size: 18,
+                      color: _orange,
+                    ),
+                  ),
+                  onTap: () => seleccionarFecha(
+                    ctx,
+                    nacimientoCtrl,
+                    inicial: DateTime(1995),
+                    ultimo: DateTime.now(),
                   ),
                   validator: (v) => v == null || v.isEmpty ? 'Requerido' : null,
                 ),
@@ -222,11 +235,11 @@ class _PassengersScreenState extends State<PassengersScreen> {
               Navigator.pop(ctx);
               if (ok) {
                 _load();
-                ScaffoldMessenger.of(context).showSnackBar(
+                ScaffoldMessenger.of(ctx).showSnackBar(
                   const SnackBar(content: Text('Guardado exitosamente')),
                 );
               } else {
-                ScaffoldMessenger.of(context).showSnackBar(
+                ScaffoldMessenger.of(ctx).showSnackBar(
                   const SnackBar(
                     content: Text('Error al guardar'),
                     backgroundColor: Colors.red,
@@ -306,7 +319,7 @@ class _PassengersScreenState extends State<PassengersScreen> {
                   child: ListView.separated(
                     padding: const EdgeInsets.all(12),
                     itemCount: _pasajeros.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 8),
+                    separatorBuilder: (_, _) => const SizedBox(height: 8),
                     itemBuilder: (ctx, i) {
                       final p = _pasajeros[i];
                       final nombre = (p['nombre_completo'] ?? '')

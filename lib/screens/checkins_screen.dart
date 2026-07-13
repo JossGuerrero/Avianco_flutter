@@ -205,11 +205,11 @@ class _CheckinsScreenState extends State<CheckinsScreen> {
                 Navigator.pop(ctx);
                 if (ok) {
                   _load();
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  ScaffoldMessenger.of(ctx).showSnackBar(
                     const SnackBar(content: Text('Check-in creado')),
                   );
                 } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  ScaffoldMessenger.of(ctx).showSnackBar(
                     const SnackBar(
                       content: Text('Error al crear'),
                       backgroundColor: AppColors.primary,
@@ -271,7 +271,7 @@ class _CheckinsScreenState extends State<CheckinsScreen> {
                     child: ListView.separated(
                       padding: const EdgeInsets.all(16),
                       itemCount: _items.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      separatorBuilder: (_, _) => const SizedBox(height: 12),
                       itemBuilder: (context, index) {
                         final item = _items[index];
                         final reserva = item['reserva'] ?? '';
